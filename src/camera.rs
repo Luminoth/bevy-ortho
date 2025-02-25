@@ -25,12 +25,15 @@ fn update_camera(
     mut camera_query: Query<&mut Transform, With<MainCamera>>,
 ) {
     if let Ok(mut camera_transform) = camera_query.get_single_mut() {
-        let rotation = camera_transform.rotation;
+        // TODO: temp stuff, what we wanna do is move the player character
+        // and have the camera follow them
 
-        camera_transform.translation += rotation
-            * Vec3::new(input_state.r#move.x, 0.0, input_state.r#move.y)
-            * time.delta_secs()
-            * MOVE_SPEED;
+        let movement =
+            camera_transform.rotation * Vec3::new(input_state.r#move.x, 0.0, input_state.r#move.y);
+
+        let y = camera_transform.translation.y;
+        camera_transform.translation += movement * time.delta_secs() * MOVE_SPEED;
+        camera_transform.translation.y = y;
     }
 }
 

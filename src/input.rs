@@ -81,10 +81,10 @@ fn update_mnk(
 
     let mut r#move = Vec2::default();
     if keys.pressed(KeyCode::KeyW) {
-        r#move.y += 1.0;
+        r#move.y -= 1.0;
     }
     if keys.pressed(KeyCode::KeyS) {
-        r#move.y -= 1.0;
+        r#move.y += 1.0;
     }
     if keys.pressed(KeyCode::KeyA) {
         r#move.x -= 1.0;
@@ -129,7 +129,7 @@ fn update_gamepad(
         gamepad.get(GamepadAxis::LeftStickX),
         gamepad.get(GamepadAxis::LeftStickY),
     ) {
-        input_state.r#move += Vec2::new(x, y);
+        input_state.r#move += Vec2::new(-x, y);
     }
 
     // right stick (look)
