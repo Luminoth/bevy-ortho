@@ -1,5 +1,6 @@
 mod camera;
 mod input;
+mod player;
 
 use bevy::prelude::*;
 
@@ -15,6 +16,7 @@ fn setup(
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::default().mesh().size(100.0, 100.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
+        Transform::from_xyz(0.0, 0.0, 0.0),
     ));
 
     commands.spawn((
@@ -39,6 +41,14 @@ fn setup(
     ));
 
     commands.spawn((PointLight::default(), Transform::from_xyz(3.0, 8.0, 5.0)));
+
+    player::spawn_player(
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        Vec3::new(0.0, 1.0, 0.0),
+        -Vec3::Z,
+    );
 }
 
 fn main() {
@@ -65,7 +75,11 @@ fn main() {
                 }),
         )
         // game plugins
-        .add_plugins((camera::OrthoCameraPlugin, input::InputPlugin))
+        .add_plugins((
+            camera::OrthoCameraPlugin,
+            input::InputPlugin,
+            player::PlayerPlugin,
+        ))
         // update continuously even while unfocused (for networking)
         .insert_resource(bevy::winit::WinitSettings {
             focused_mode: bevy::winit::UpdateMode::Continuous,

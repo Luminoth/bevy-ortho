@@ -47,6 +47,7 @@ pub fn spawn_main_camera(commands: &mut Commands, position: Vec3, look_at: Vec3)
             ..OrthographicProjection::default_3d()
         }),
         Transform::from_translation(position).looking_at(look_at, Vec3::Y),
+        Name::new("Main camera"),
         MainCamera,
     ));
 }
