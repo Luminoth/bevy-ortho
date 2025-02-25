@@ -1,7 +1,11 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
 
+use crate::input;
+
 #[derive(Component)]
 pub struct MainCamera;
+
+const MOVE_SPEED: f32 = 5.0;
 
 #[derive(Debug)]
 pub struct OrthoCameraPlugin;
@@ -10,23 +14,27 @@ impl Plugin for OrthoCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            update_camera, //.after(input::InputSet)
-                           //.run_if(in_state(AppState::InGame)),
+            update_camera.after(input::InputSet), //.run_if(in_state(AppState::InGame)),
         );
     }
 }
 
 fn update_camera(
-    _time: Res<Time>,
-    //input_state: Res<InputState>,
+    time: Res<Time>,
+    input_state: Res<input::InputState>,
     mut camera_query: Query<&mut Transform, With<MainCamera>>,
 ) {
-    if let Ok(mut _camera_transform) = camera_query.get_single_mut() {
-        // TODO: move the camera
+    if let Ok(mut camera_transform) = camera_query.get_single_mut() {
+        let rotation = camera_transform.rotation;
+
+        camera_transform.translation += rotation
+            * Vec3::new(input_state.r#move.x, 0.0, input_state.r#move.y)
+            * time.delta_secs()
+            * MOVE_SPEED;
     }
 }
 
-pub fn spawn_camera(commands: &mut Commands, position: Vec3, look_at: Vec3) {
+pub fn spawn_main_camera(commands: &mut Commands, position: Vec3, look_at: Vec3) {
     commands.spawn((
         Camera3d::default(),
         Projection::from(OrthographicProjection {
@@ -36,5 +44,6 @@ pub fn spawn_camera(commands: &mut Commands, position: Vec3, look_at: Vec3) {
             ..OrthographicProjection::default_3d()
         }),
         Transform::from_translation(position).looking_at(look_at, Vec3::Y),
+        MainCamera,
     ));
 }
