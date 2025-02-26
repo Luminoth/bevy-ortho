@@ -15,7 +15,7 @@ fn spawn_floor(
     rotation: Quat,
 ) {
     let mut commands = commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(10.0, 10.0))),
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(20.0, 20.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
         Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(rotation),
     ));
@@ -23,7 +23,7 @@ fn spawn_floor(
     commands.insert((
         RigidBody::Static,
         // TODO: can we infer this from the mesh?
-        Collider::cuboid(10.0, 0.1, 10.0),
+        Collider::cuboid(20.0, 0.1, 20.0),
     ));
 }
 
@@ -77,7 +77,7 @@ pub fn spawn_world(
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(1.5, 0.5, 1.5),
+        Vec3::new(2.0, 0.5, 2.0),
         rotation,
     );
 
@@ -86,7 +86,7 @@ pub fn spawn_world(
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(1.5, 0.5, -1.5),
+        Vec3::new(2.0, 0.5, -2.0),
         rotation,
     );
 
@@ -95,7 +95,7 @@ pub fn spawn_world(
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(-1.5, 0.5, 1.5),
+        Vec3::new(-2.0, 0.5, 2.0),
         rotation,
     );
 
@@ -104,7 +104,7 @@ pub fn spawn_world(
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(-1.5, 0.5, -1.5),
+        Vec3::new(-2.0, 0.5, -2.0),
         rotation,
     );
 }
