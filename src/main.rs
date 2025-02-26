@@ -1,6 +1,7 @@
 mod camera;
 mod input;
 mod player;
+mod world;
 
 use bevy::prelude::*;
 
@@ -11,43 +12,20 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    camera::spawn_main_camera(&mut commands, Vec3::new(5.0, 5.0, 5.0), Vec3::ZERO);
+    camera::spawn_main_camera(&mut commands, Vec3::new(0.0, 5.0, 5.0));
 
-    commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(100.0, 100.0))),
-        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
-        Transform::from_xyz(0.0, 0.0, 0.0),
-    ));
-
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(Color::srgb(0.8, 0.7, 0.6))),
-        Transform::from_xyz(1.5, 0.5, 1.5),
-    ));
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(Color::srgb(0.8, 0.7, 0.6))),
-        Transform::from_xyz(1.5, 0.5, -1.5),
-    ));
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(Color::srgb(0.8, 0.7, 0.6))),
-        Transform::from_xyz(-1.5, 0.5, 1.5),
-    ));
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(Color::srgb(0.8, 0.7, 0.6))),
-        Transform::from_xyz(-1.5, 0.5, -1.5),
-    ));
-
-    commands.spawn((PointLight::default(), Transform::from_xyz(3.0, 8.0, 5.0)));
+    world::spawn_world(
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        Quat::from_axis_angle(Vec3::Y, 45.0_f32.to_radians()),
+    );
 
     player::spawn_player(
         &mut commands,
         &mut meshes,
         &mut materials,
         Vec3::new(0.0, 1.0, 0.0),
-        -Vec3::Z,
     );
 }
 
@@ -74,10 +52,18 @@ fn main() {
                     ..default()
                 }),
         )
+        // third party plugins
+        .add_plugins((
+            avian3d::PhysicsPlugins::default(), // TODO: this doesn't work with tnua: .set(PhysicsInterpolationPlugin::interpolate_all()),
+            avian3d::debug_render::PhysicsDebugPlugin::default(),
+            bevy_tnua::controller::TnuaControllerPlugin::new(avian3d::schedule::PhysicsSchedule),
+            bevy_tnua_avian3d::TnuaAvian3dPlugin::new(avian3d::schedule::PhysicsSchedule),
+        ))
         // game plugins
         .add_plugins((
             camera::OrthoCameraPlugin,
             input::InputPlugin,
+            world::WorldPlugin,
             player::PlayerPlugin,
         ))
         // update continuously even while unfocused (for networking)
