@@ -1,5 +1,5 @@
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, scene::SceneInstance};
 use bevy_tnua::prelude::*;
 
 use crate::input;
@@ -22,10 +22,27 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             Update,
             (
+                fix_player_model,
                 move_player.after(input::InputSet), //.run_if(in_state(AppState::InGame)),
             )
                 .in_set(PlayerSet),
         );
+    }
+}
+
+fn fix_player_model(
+    player_query: Query<&Children, (With<Player>, Added<SceneInstance>)>,
+    mut transform_query: Query<&mut Transform>,
+) {
+    for children in player_query.iter() {
+        info!("checking children");
+        for child in children {
+            info!("checking child");
+            if let Ok(mut child_transform) = transform_query.get_mut(*child) {
+                info!("fixing child");
+                child_transform.translation.y = -1.0;
+            }
+        }
     }
 }
 
@@ -47,7 +64,7 @@ pub fn move_player(
             //desired_forward: Dir3::new(Vec3::new(last_input.input_state.look.x, 0.0, 0.0)).ok(),
             desired_forward: Some(-Dir3::Z),
             // TODO: this doesn't seem right by the docs, but anything less doesn't work
-            float_height: HEIGHT,
+            float_height: HEIGHT * 0.75,
             ..Default::default()
         });
     }
@@ -55,13 +72,17 @@ pub fn move_player(
 
 pub fn spawn_player(
     commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
+    asset_server: &AssetServer,
+    _meshes: &mut Assets<Mesh>,
+    _materials: &mut Assets<StandardMaterial>,
     position: Vec3,
 ) {
+    let model = asset_server.load(GltfAssetLabel::Scene(0).from_asset("human_1.glb"));
+
     let mut commands = commands.spawn((
-        Mesh3d(meshes.add(Capsule3d::default())),
-        MeshMaterial3d(materials.add(Color::srgb(0.5, 0.7, 0.5))),
+        /*Mesh3d(meshes.add(Capsule3d::default())),
+        MeshMaterial3d(materials.add(Color::srgb(0.5, 0.7, 0.5))),*/
+        SceneRoot(model),
         Transform::from_translation(position),
         Name::new("Player"),
         Player,

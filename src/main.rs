@@ -1,4 +1,5 @@
 mod camera;
+mod debug;
 mod input;
 mod player;
 mod world;
@@ -9,10 +10,11 @@ const DEFAULT_RESOLUTION: (f32, f32) = (1280.0, 720.0);
 
 fn setup(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 10.0, 10.0));
+    camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 5.0, 5.0));
 
     world::spawn_world(
         &mut commands,
@@ -23,6 +25,7 @@ fn setup(
 
     player::spawn_player(
         &mut commands,
+        &asset_server,
         &mut meshes,
         &mut materials,
         Vec3::new(0.0, 1.0, 0.0),
@@ -54,6 +57,7 @@ fn main() {
         )
         // third party plugins
         .add_plugins((
+            bevy_egui::EguiPlugin,
             avian3d::PhysicsPlugins::default(), // TODO: this doesn't work with tnua: .set(PhysicsInterpolationPlugin::interpolate_all()),
             avian3d::debug_render::PhysicsDebugPlugin::default(),
             bevy_tnua::controller::TnuaControllerPlugin::new(avian3d::schedule::PhysicsSchedule),
@@ -65,6 +69,7 @@ fn main() {
             input::InputPlugin,
             world::WorldPlugin,
             player::PlayerPlugin,
+            debug::DebugPlugin,
         ))
         // update continuously even while unfocused (for networking)
         .insert_resource(bevy::winit::WinitSettings {
