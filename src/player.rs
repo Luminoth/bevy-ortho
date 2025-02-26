@@ -7,8 +7,8 @@ use crate::input;
 #[derive(Component)]
 pub struct Player;
 
-const MOVE_SPEED: f32 = 5.0;
-const HEIGHT: f32 = 2.0; // includes capsule hemispheres
+const MOVE_SPEED: f32 = 8.0;
+const HEIGHT: f32 = 2.0;
 const MASS: f32 = 75.0;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet)]

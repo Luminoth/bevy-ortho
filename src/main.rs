@@ -12,7 +12,7 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    camera::spawn_main_camera(&mut commands, Vec3::new(0.0, 5.0, 5.0));
+    camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 10.0, 10.0));
 
     world::spawn_world(
         &mut commands,

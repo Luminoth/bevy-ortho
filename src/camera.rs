@@ -29,13 +29,11 @@ fn update_camera(
     }
 }
 
-pub fn spawn_main_camera(commands: &mut Commands, offset: Vec3) {
+pub fn spawn_main_camera(commands: &mut Commands, viewport_height: f32, offset: Vec3) {
     commands.spawn((
         Camera3d::default(),
         Projection::from(OrthographicProjection {
-            scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: 10.0,
-            },
+            scaling_mode: ScalingMode::FixedVertical { viewport_height },
             ..OrthographicProjection::default_3d()
         }),
         Transform::from_translation(offset).looking_at(Vec3::ZERO, Vec3::Y),
