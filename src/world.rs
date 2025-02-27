@@ -18,6 +18,7 @@ fn spawn_floor(
         Mesh3d(meshes.add(Plane3d::default().mesh().size(20.0, 20.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
         Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(rotation),
+        Name::new("Floor"),
     ));
 
     commands.insert((
@@ -39,6 +40,7 @@ fn spawn_box(
         Mesh3d(meshes.add(Cuboid::default())),
         MeshMaterial3d(materials.add(color)),
         Transform::from_translation(position).with_rotation(rotation),
+        Name::new("Box"),
     ));
 
     commands.insert((

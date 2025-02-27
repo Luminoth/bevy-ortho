@@ -6,7 +6,7 @@ use bevy::{
     input::common_conditions::input_toggle_active,
     prelude::*,
 };
-use bevy_egui::{EguiContexts, egui};
+use bevy_inspector_egui::{bevy_egui::EguiContexts, egui};
 
 #[derive(Debug, Default, Reflect, Resource)]
 pub struct DebugSettings {

@@ -57,7 +57,6 @@ fn main() {
         )
         // third party plugins
         .add_plugins((
-            bevy_egui::EguiPlugin,
             avian3d::PhysicsPlugins::default(), // TODO: this doesn't work with tnua: .set(PhysicsInterpolationPlugin::interpolate_all()),
             avian3d::debug_render::PhysicsDebugPlugin::default(),
             bevy_tnua::controller::TnuaControllerPlugin::new(avian3d::schedule::PhysicsSchedule),
