@@ -101,7 +101,7 @@ fn update_mnk(
             evt.delta.x,
             /*if settings.mnk.invert_look { -1.0 } else { 1.0 } * -evt.delta.y,
             ) * settings.mnk.mouse_sensitivity*/
-            evt.delta.y,
+            -evt.delta.y,
         ) * 2.0;
     }
 
@@ -129,7 +129,7 @@ fn update_gamepad(
         gamepad.get(GamepadAxis::LeftStickX),
         gamepad.get(GamepadAxis::LeftStickY),
     ) {
-        input_state.r#move += Vec2::new(-x, y);
+        input_state.r#move += Vec2::new(x, -y);
     }
 
     // right stick (look)

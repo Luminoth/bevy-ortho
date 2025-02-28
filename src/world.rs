@@ -14,18 +14,17 @@ fn spawn_floor(
     materials: &mut Assets<StandardMaterial>,
     rotation: Quat,
 ) {
+    let x_len = 30.0;
+    let z_len = 30.0;
+
     let mut commands = commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(20.0, 20.0))),
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(x_len, z_len))),
         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
         Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(rotation),
         Name::new("Floor"),
     ));
 
-    commands.insert((
-        RigidBody::Static,
-        // TODO: can we infer this from the mesh?
-        Collider::cuboid(20.0, 0.1, 20.0),
-    ));
+    commands.insert((RigidBody::Static, Collider::cuboid(x_len, 0.1, z_len)));
 }
 
 fn spawn_box(
@@ -36,18 +35,40 @@ fn spawn_box(
     position: Vec3,
     rotation: Quat,
 ) {
+    let x_len = 1.0;
+    let y_len = 1.0;
+    let z_len = 1.0;
+
     let mut commands = commands.spawn((
-        Mesh3d(meshes.add(Cuboid::default())),
+        Mesh3d(meshes.add(Cuboid::new(x_len, y_len, z_len))),
         MeshMaterial3d(materials.add(color)),
         Transform::from_translation(position).with_rotation(rotation),
         Name::new("Box"),
     ));
 
-    commands.insert((
-        RigidBody::Static,
-        // TODO: can we infer this from the mesh?
-        Collider::cuboid(1.0, 1.0, 1.0),
+    commands.insert((RigidBody::Static, Collider::cuboid(x_len, y_len, z_len)));
+}
+
+fn spawn_crate(
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    color: Color,
+    position: Vec3,
+    rotation: Quat,
+) {
+    let x_len = 2.0;
+    let y_len = 1.0;
+    let z_len = 1.0;
+
+    let mut commands = commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(x_len, y_len, z_len))),
+        MeshMaterial3d(materials.add(color)),
+        Transform::from_translation(position).with_rotation(rotation),
+        Name::new("Box"),
     ));
+
+    commands.insert((RigidBody::Static, Collider::cuboid(x_len, y_len, z_len)));
 }
 
 pub fn spawn_world(
@@ -64,7 +85,7 @@ pub fn spawn_world(
     commands.spawn((
         DirectionalLight {
             color: css::ORANGE_RED.into(),
-            shadows_enabled: true,
+            shadows_enabled: false,
             ..default()
         },
         Transform::from_xyz(0.0, 8.0, 0.0),
@@ -79,7 +100,7 @@ pub fn spawn_world(
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(2.0, 0.5, 2.0),
+        Vec3::new(5.0, 0.5, 5.0),
         rotation,
     );
 
@@ -88,25 +109,25 @@ pub fn spawn_world(
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(2.0, 0.5, -2.0),
+        Vec3::new(5.0, 0.5, -5.0),
         rotation,
     );
 
-    spawn_box(
+    spawn_crate(
         commands,
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(-2.0, 0.5, 2.0),
+        Vec3::new(-5.0, 0.5, 5.0),
         rotation,
     );
 
-    spawn_box(
+    spawn_crate(
         commands,
         meshes,
         materials,
         Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(-2.0, 0.5, -2.0),
+        Vec3::new(-5.0, 0.5, -5.0),
         rotation,
     );
 }
