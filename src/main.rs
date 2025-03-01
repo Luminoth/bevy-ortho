@@ -13,6 +13,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut graphs: ResMut<Assets<AnimationGraph>>,
 ) {
     camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 5.0, 5.0));
 
@@ -28,6 +29,7 @@ fn setup(
         &asset_server,
         &mut meshes,
         &mut materials,
+        &mut graphs,
         Vec3::new(0.0, 1.0, 0.0),
     );
 }

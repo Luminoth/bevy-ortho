@@ -4,6 +4,13 @@ use bevy_tnua::prelude::*;
 
 use crate::input;
 
+#[derive(Resource)]
+#[allow(dead_code)]
+struct Animations {
+    animations: Vec<AnimationNodeIndex>,
+    graph: Handle<AnimationGraph>,
+}
+
 #[derive(Component)]
 pub struct Player;
 
@@ -13,6 +20,7 @@ pub struct PlayerModel;
 const MOVE_SPEED: f32 = 8.0;
 const HEIGHT: f32 = 2.0;
 const MASS: f32 = 75.0;
+const MODEL_PATH: &str = "human_1.glb";
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet)]
 pub struct PlayerSet;
@@ -55,9 +63,20 @@ pub fn spawn_player(
     asset_server: &AssetServer,
     _meshes: &mut Assets<Mesh>,
     _materials: &mut Assets<StandardMaterial>,
+    graphs: &mut Assets<AnimationGraph>,
     position: Vec3,
 ) {
-    let model = asset_server.load(GltfAssetLabel::Scene(0).from_asset("human_1.glb"));
+    let (graph, node_indices) = AnimationGraph::from_clips([
+        asset_server.load(GltfAssetLabel::Animation(0).from_asset(MODEL_PATH))
+    ]);
+
+    let graph_handle = graphs.add(graph);
+    commands.insert_resource(Animations {
+        animations: node_indices,
+        graph: graph_handle,
+    });
+
+    let model = asset_server.load(GltfAssetLabel::Scene(0).from_asset(MODEL_PATH));
 
     let mut commands = commands.spawn((
         Transform::from_translation(position),
@@ -83,6 +102,7 @@ pub fn spawn_player(
             // TODO: this is because our temp model is at 1.0 instead of 0.0
             Transform::from_xyz(0.0, -1.0, 0.0),
             SceneRoot(model),
+            Name::new("Model"),
             PlayerModel,
         ));
     });
