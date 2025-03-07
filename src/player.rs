@@ -45,12 +45,16 @@ pub fn move_player(
     mut player_query: Query<&mut TnuaController, With<Player>>,
 ) {
     if let Ok(mut character_controller) = player_query.get_single_mut() {
-        let direction = Vec3::new(input_state.r#move.x, 0.0, input_state.r#move.y);
+        let direction = Vec3::new(input_state.primary.x, 0.0, input_state.primary.y);
 
         character_controller.basis(TnuaBuiltinWalk {
             desired_velocity: direction.normalize_or_zero() * MOVE_SPEED,
-            desired_forward: Dir3::new(Vec3::new(-input_state.look.x, 0.0, input_state.look.y))
-                .ok(),
+            desired_forward: Dir3::new(Vec3::new(
+                -input_state.secondary.x,
+                0.0,
+                input_state.secondary.y,
+            ))
+            .ok(),
             // TODO: this doesn't seem right by the docs / examples?
             float_height: HEIGHT * 0.75,
             ..Default::default()

@@ -11,8 +11,8 @@ struct ConnectedGamepad(Entity);
 
 #[derive(Debug, Default, Copy, Clone, Resource, Reflect)]
 pub struct InputState {
-    pub look: Vec2,
-    pub r#move: Vec2,
+    pub primary: Vec2,
+    pub secondary: Vec2,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet)]
@@ -37,8 +37,8 @@ impl Plugin for InputPlugin {
 }
 
 fn clear_input(mut input_state: ResMut<InputState>) {
-    input_state.look = Vec2::ZERO;
-    input_state.r#move = Vec2::ZERO;
+    input_state.primary = Vec2::ZERO;
+    input_state.secondary = Vec2::ZERO;
 }
 
 fn handle_gamepad_events(
@@ -79,25 +79,25 @@ fn update_mnk(
         return;
     }*/
 
-    let mut r#move = Vec2::default();
+    let mut primary = Vec2::default();
     if keys.pressed(KeyCode::KeyW) {
-        r#move.y -= 1.0;
+        primary.y -= 1.0;
     }
     if keys.pressed(KeyCode::KeyS) {
-        r#move.y += 1.0;
+        primary.y += 1.0;
     }
     if keys.pressed(KeyCode::KeyA) {
-        r#move.x -= 1.0;
+        primary.x -= 1.0;
     }
     if keys.pressed(KeyCode::KeyD) {
-        r#move.x += 1.0;
+        primary.x += 1.0;
     }
 
-    input_state.r#move += r#move;
+    input_state.primary += primary;
 
-    let mut look = Vec2::default();
+    let mut secondary = Vec2::default();
     for evt in evr_motion.read() {
-        look += Vec2::new(
+        secondary += Vec2::new(
             evt.delta.x,
             /*if settings.mnk.invert_look { -1.0 } else { 1.0 } * -evt.delta.y,
             ) * settings.mnk.mouse_sensitivity*/
@@ -105,7 +105,7 @@ fn update_mnk(
         ) * 2.0;
     }
 
-    input_state.look += look;
+    input_state.secondary += secondary;
 }
 
 fn update_gamepad(
@@ -124,20 +124,20 @@ fn update_gamepad(
 
     let gamepad = gamepads.get(gamepad).unwrap();
 
-    // left stick (move)
+    // left stick (primary, usually move)
     if let (Some(x), Some(y)) = (
         gamepad.get(GamepadAxis::LeftStickX),
         gamepad.get(GamepadAxis::LeftStickY),
     ) {
-        input_state.r#move += Vec2::new(x, -y);
+        input_state.primary += Vec2::new(x, -y);
     }
 
-    // right stick (look)
+    // right stick (secondary, usually look / cursor)
     if let (Some(x), Some(y)) = (
         gamepad.get(GamepadAxis::RightStickX),
         gamepad.get(GamepadAxis::RightStickY),
     ) {
-        input_state.look += Vec2::new(
+        input_state.secondary += Vec2::new(
             x,
             /*if settings.gamepad.invert_look {
                     -1.0
