@@ -99,13 +99,11 @@ fn update_mnk(
     for evt in evr_motion.read() {
         secondary += Vec2::new(
             evt.delta.x,
-            /*if settings.mnk.invert_look { -1.0 } else { 1.0 } * -evt.delta.y,
-            ) * settings.mnk.mouse_sensitivity*/
-            -evt.delta.y,
-        ) * 2.0;
+            evt.delta.y, //if settings.mnk.invert_look { -1.0 } else { 1.0 } * evt.delta.y,
+        );
     }
 
-    input_state.secondary += secondary;
+    input_state.secondary += secondary; // * settings.mnk.mouse_sensitivity;
 }
 
 fn update_gamepad(
@@ -138,14 +136,7 @@ fn update_gamepad(
         gamepad.get(GamepadAxis::RightStickY),
     ) {
         input_state.secondary += Vec2::new(
-            x,
-            /*if settings.gamepad.invert_look {
-                    -1.0
-                } else {
-                    1.0
-                } * y,
-            ) * settings.gamepad.look_sensitivity*/
-            y,
-        ) * 4.0;
+            x, y, //if settings.gamepad.invert_look { -1.0 } else { 1.0 } * y,
+        ) * 4.0; // * settings.gamepad.look_sensitivity
     }
 }

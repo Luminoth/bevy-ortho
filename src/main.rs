@@ -1,12 +1,26 @@
 mod camera;
+mod cursor;
 mod debug;
 mod input;
 mod player;
 mod world;
 
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 
 const DEFAULT_RESOLUTION: (f32, f32) = (1280.0, 720.0);
+
+pub fn show_cursor(window: &mut Window, show: bool) {
+    window.cursor_options.grab_mode = if show {
+        CursorGrabMode::None
+    } else {
+        CursorGrabMode::Locked
+    };
+
+    window.cursor_options.visible = show;
+}
 
 fn setup(
     mut commands: Commands,
@@ -14,7 +28,21 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut graphs: ResMut<Assets<AnimationGraph>>,
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
 ) {
+    // TODO: this is happening before the window is visible
+    // we need to wait until the window is visibile to do all this
+    {
+        let mut window = window_query.single_mut();
+
+        show_cursor(&mut window, false);
+
+        cursor::spawn_cursor(
+            &mut commands,
+            Vec2::new(window.width() * 0.5, window.height() * 0.5),
+        );
+    }
+
     camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 5.0, 5.0));
 
     world::spawn_world(
@@ -68,6 +96,7 @@ fn main() {
         .add_plugins((
             camera::OrthoCameraPlugin,
             input::InputPlugin,
+            cursor::CursorPlugin,
             world::WorldPlugin,
             player::PlayerPlugin,
             debug::DebugPlugin,
