@@ -12,6 +12,13 @@ use bevy::{
 
 const DEFAULT_RESOLUTION: (f32, f32) = (1280.0, 720.0);
 
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, States, Reflect)]
+pub enum AppState {
+    #[default]
+    Init,
+    InGame,
+}
+
 pub fn show_cursor(window: &mut Window, show: bool) {
     window.cursor_options.grab_mode = if show {
         CursorGrabMode::None
@@ -22,7 +29,20 @@ pub fn show_cursor(window: &mut Window, show: bool) {
     window.cursor_options.visible = show;
 }
 
-fn setup(
+fn wait_for_window(
+    frames: Res<bevy::core::FrameCount>,
+    mut app_state: ResMut<NextState<AppState>>,
+) {
+    // this is insane but we need to wait for the window
+    // to show before we can grab the cursor
+    // and there's no way to tell when that happens beyond waiting
+    // for an arbitrary number of frames to pass by lol
+    if frames.0 > 5 {
+        app_state.set(AppState::InGame);
+    }
+}
+
+fn enter_game(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -30,18 +50,14 @@ fn setup(
     mut graphs: ResMut<Assets<AnimationGraph>>,
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
 ) {
-    // TODO: this is happening before the window is visible
-    // we need to wait until the window is visibile to do all this
-    {
-        let mut window = window_query.single_mut();
+    let mut window = window_query.single_mut();
 
-        show_cursor(&mut window, false);
+    show_cursor(&mut window, false);
 
-        cursor::spawn_cursor(
-            &mut commands,
-            Vec2::new(window.width() * 0.5, window.height() * 0.5),
-        );
-    }
+    cursor::spawn_cursor(
+        &mut commands,
+        Vec2::new(window.width() * 0.5, window.height() * 0.5),
+    );
 
     camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 5.0, 5.0));
 
@@ -60,6 +76,10 @@ fn setup(
         &mut graphs,
         Vec3::new(0.0, 1.0, 0.0),
     );
+}
+
+fn quit_game(mut exit: EventWriter<AppExit>) {
+    exit.send(AppExit::Success);
 }
 
 fn main() {
@@ -105,9 +125,17 @@ fn main() {
         .insert_resource(bevy::winit::WinitSettings {
             focused_mode: bevy::winit::UpdateMode::Continuous,
             unfocused_mode: bevy::winit::UpdateMode::Continuous,
-        });
+        })
+        .init_state::<AppState>();
 
-    app.add_systems(Startup, setup);
+    app.add_systems(Update, wait_for_window.run_if(in_state(AppState::Init)))
+        .add_systems(OnEnter(AppState::InGame), enter_game)
+        .add_systems(
+            Update,
+            quit_game.run_if(in_state(AppState::InGame)).run_if(
+                bevy::input::common_conditions::input_just_pressed(KeyCode::Escape),
+            ),
+        );
 
     app.run();
 }

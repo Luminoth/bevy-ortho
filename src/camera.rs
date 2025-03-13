@@ -1,6 +1,6 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
 
-use crate::player;
+use crate::{AppState, player};
 
 #[derive(Component)]
 pub struct MainCamera(Vec3);
@@ -12,7 +12,9 @@ impl Plugin for OrthoCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            update_camera.after(player::PlayerSet), //.run_if(in_state(AppState::InGame)),
+            update_camera
+                .after(player::PlayerSet)
+                .run_if(in_state(AppState::InGame)),
         );
     }
 }

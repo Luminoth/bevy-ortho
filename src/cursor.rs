@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::{input, player};
+use crate::{AppState, input, player};
 
 #[derive(Component)]
 pub struct Cursor;
@@ -12,7 +12,9 @@ impl Plugin for CursorPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            update_cursor.after(player::PlayerSet), //.run_if(in_state(AppState::InGame)),
+            update_cursor
+                .after(player::PlayerSet)
+                .run_if(in_state(AppState::InGame)),
         );
     }
 }

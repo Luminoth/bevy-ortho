@@ -2,7 +2,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
-use crate::input;
+use crate::{AppState, input};
 
 #[derive(Resource)]
 #[allow(dead_code)]
@@ -32,9 +32,9 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                move_player.after(input::InputSet), //.run_if(in_state(AppState::InGame)),
-            )
+            (move_player
+                .after(input::InputSet)
+                .run_if(in_state(AppState::InGame)),)
                 .in_set(PlayerSet),
         );
     }
