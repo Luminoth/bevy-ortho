@@ -122,9 +122,13 @@ fn game_debug_ui(
 
     let cursor_viewport_position =
         cursor::get_cursor_viewport_position(cursor_node).unwrap_or_default();
-    let cursor_world_position =
-        cursor::get_cursor_world_position(cursor_node, camera, camera_global_transform)
-            .unwrap_or_default();
+    let cursor_world_position = cursor::get_cursor_world_position(
+        cursor_node,
+        camera,
+        camera_global_transform,
+        player_global_transform,
+    )
+    .unwrap_or_default();
     let player_global_translation = player_global_transform.translation();
 
     egui::Window::new("Game Debug").show(contexts.ctx_mut(), |ui| {

@@ -48,25 +48,23 @@ fn update_player(
     cursor_query: Query<&Node, With<cursor::Cursor>>,
     camera_query: Query<(&Camera, &GlobalTransform), With<camera::MainCamera>>,
 ) {
-    if let Ok((mut character_controller, player_transform, mut player)) =
+    if let Ok((mut character_controller, player_global_transform, mut player)) =
         player_query.get_single_mut()
     {
         let cursor_node = cursor_query.single();
         let (camera, camera_global_transform) = camera_query.single();
 
-        let cursor_world_position =
-            cursor::get_cursor_world_position(cursor_node, camera, camera_global_transform)
-                .unwrap_or_default();
-
-        let player_global_position = player_transform.translation();
-
-        player.look_at = Vec3::new(
-            cursor_world_position.x,
-            player_global_position.y,
-            cursor_world_position.y,
-        );
-
         let move_direction = Vec3::new(input_state.primary.x, 0.0, input_state.primary.y);
+
+        player.look_at = cursor::get_cursor_world_position(
+            cursor_node,
+            camera,
+            camera_global_transform,
+            player_global_transform,
+        )
+        .unwrap_or_default();
+
+        let player_global_position = player_global_transform.translation();
 
         character_controller.basis(TnuaBuiltinWalk {
             desired_velocity: move_direction.normalize_or_zero() * MOVE_SPEED,

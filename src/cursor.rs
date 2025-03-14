@@ -124,11 +124,20 @@ pub fn get_cursor_world_position(
     cursor_node: &Node,
     camera: &Camera,
     camera_global_transform: &GlobalTransform,
-) -> Option<Vec2> {
+    player_global_transform: &GlobalTransform,
+) -> Option<Vec3> {
+    let plane_origin = player_global_transform.translation();
+    let plane = InfinitePlane3d::new(player_global_transform.up());
+
     let cursor_viewport_position = get_cursor_viewport_position(cursor_node).unwrap_or_default();
-    if let Ok(ray) = camera.viewport_to_world(camera_global_transform, cursor_viewport_position) {
-        Some(ray.origin.truncate())
-    } else {
-        None
-    }
+    let Ok(ray) = camera.viewport_to_world(camera_global_transform, cursor_viewport_position)
+    else {
+        return None;
+    };
+
+    let Some(distance) = ray.intersect_plane(plane_origin, plane) else {
+        return None;
+    };
+
+    Some(ray.get_point(distance))
 }
