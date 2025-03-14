@@ -13,7 +13,7 @@ struct Animations {
 
 #[derive(Debug, Default, Component)]
 pub struct Player {
-    look_at: Vec3,
+    pub look_at: Vec3,
 }
 
 #[derive(Component)]

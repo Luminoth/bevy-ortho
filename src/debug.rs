@@ -8,6 +8,8 @@ use bevy::{
 };
 use bevy_inspector_egui::{bevy_egui::EguiContexts, egui};
 
+use crate::{camera, cursor, player};
+
 #[derive(Debug, Default, Reflect, Resource)]
 pub struct DebugSettings {
     pub show_world_inspector: bool,
@@ -46,7 +48,7 @@ impl Plugin for DebugPlugin {
             Update,
             // TODO: this needs to be reworked to also hide the inspectors when disabling
             // (probably just copy input_toggle_active but also have it disable everything?)
-            debug_ui.run_if(input_toggle_active(false, KeyCode::Backquote)),
+            (debug_ui, game_debug_ui).run_if(input_toggle_active(false, KeyCode::Backquote)),
         );
     }
 }
@@ -104,6 +106,37 @@ fn debug_ui(
             if ui.button("World Inspector").clicked() {
                 debug_settings.show_world_inspector = !debug_settings.show_world_inspector;
             }
+        });
+    });
+}
+
+fn game_debug_ui(
+    mut contexts: EguiContexts,
+    player_query: Query<(&GlobalTransform, &mut player::Player)>,
+    cursor_query: Query<&Node, With<cursor::Cursor>>,
+    camera_query: Query<(&Camera, &GlobalTransform), With<camera::MainCamera>>,
+) {
+    let (player_global_transform, player) = player_query.single();
+    let cursor_node = cursor_query.single();
+    let (camera, camera_global_transform) = camera_query.single();
+
+    let cursor_viewport_position =
+        cursor::get_cursor_viewport_position(cursor_node).unwrap_or_default();
+    let cursor_world_position =
+        cursor::get_cursor_world_position(cursor_node, camera, camera_global_transform)
+            .unwrap_or_default();
+    let player_global_translation = player_global_transform.translation();
+
+    egui::Window::new("Game Debug").show(contexts.ctx_mut(), |ui| {
+        ui.vertical(|ui| {
+            ui.label(format!(
+                "Cursor viewport position: {}",
+                cursor_viewport_position
+            ));
+            ui.label(format!("Cursor world position: {}", cursor_world_position));
+
+            ui.label(format!("Player position: {}", player_global_translation));
+            ui.label(format!("Player look at: {}", player.look_at));
         });
     });
 }
