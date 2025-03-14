@@ -136,7 +136,7 @@ fn update_gamepad(
         gamepad.get(GamepadAxis::RightStickY),
     ) {
         input_state.secondary += Vec2::new(
-            x, y, //if settings.gamepad.invert_look { -1.0 } else { 1.0 } * y,
-        ) * 4.0; // * settings.gamepad.look_sensitivity
+            x, -y, //if settings.gamepad.invert_look { -1.0 } else { 1.0 } * y,
+        ) * 10.0; // * settings.gamepad.look_sensitivity
     }
 }
