@@ -101,3 +101,29 @@ pub fn spawn_cursor(commands: &mut Commands, position: Vec2) {
         ));
     });
 }
+
+pub fn get_cursor_world_position(
+    cursor_node: &Node,
+    camera: &Camera,
+    camera_global_transform: &GlobalTransform,
+) -> Option<Vec2> {
+    let mut cursor_viewport_position = Vec2::default();
+
+    if let Val::Px(left) = cursor_node.left {
+        cursor_viewport_position.x = left;
+    } else {
+        return None;
+    }
+
+    if let Val::Px(top) = cursor_node.top {
+        cursor_viewport_position.y = top;
+    } else {
+        return None;
+    }
+
+    if let Ok(ray) = camera.viewport_to_world(camera_global_transform, cursor_viewport_position) {
+        Some(ray.origin.truncate())
+    } else {
+        None
+    }
+}

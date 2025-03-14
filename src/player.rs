@@ -11,8 +11,10 @@ struct Animations {
     graph: Handle<AnimationGraph>,
 }
 
-#[derive(Component)]
-pub struct Player;
+#[derive(Debug, Default, Component)]
+pub struct Player {
+    look_at: Vec3,
+}
 
 #[derive(Component)]
 pub struct PlayerModel;
@@ -42,49 +44,33 @@ impl Plugin for PlayerPlugin {
 
 fn update_player(
     input_state: Res<input::InputState>,
-    mut player_query: Query<(&mut TnuaController, &GlobalTransform), With<Player>>,
+    mut player_query: Query<(&mut TnuaController, &GlobalTransform, &mut Player)>,
     cursor_query: Query<&Node, With<cursor::Cursor>>,
     camera_query: Query<(&Camera, &GlobalTransform), With<camera::MainCamera>>,
 ) {
-    if let Ok((mut character_controller, player_transform)) = player_query.get_single_mut() {
+    if let Ok((mut character_controller, player_transform, mut player)) =
+        player_query.get_single_mut()
+    {
         let cursor_node = cursor_query.single();
-        let (camera, camera_transform) = camera_query.single();
+        let (camera, camera_global_transform) = camera_query.single();
 
-        let mut cursor_viewport_position = Vec2::default();
-        if let Val::Px(left) = cursor_node.left {
-            cursor_viewport_position.x = left;
-        }
-        if let Val::Px(top) = cursor_node.top {
-            cursor_viewport_position.y = top;
-        }
+        let cursor_world_position =
+            cursor::get_cursor_world_position(cursor_node, camera, camera_global_transform)
+                .unwrap_or_default();
 
-        let mut cursor_world_position = Vec2::default();
-        if let Ok(ray) = camera.viewport_to_world(camera_transform, cursor_viewport_position) {
-            cursor_world_position = ray.origin.truncate();
-        }
+        let player_global_position = player_transform.translation();
 
-        let player_position = player_transform.translation();
-
-        let look_at = Vec3::new(
+        player.look_at = Vec3::new(
             cursor_world_position.x,
-            player_position.y,
+            player_global_position.y,
             cursor_world_position.y,
         );
 
         let move_direction = Vec3::new(input_state.primary.x, 0.0, input_state.primary.y);
 
-        /*info!(
-            "cursor pos: {}, world pos: {}, player pos: {}, look at: {}, direction: {}",
-            cursor_viewport_position,
-            cursor_world_position,
-            player_position,
-            look_at,
-            look_at - player_position
-        );*/
-
         character_controller.basis(TnuaBuiltinWalk {
             desired_velocity: move_direction.normalize_or_zero() * MOVE_SPEED,
-            desired_forward: Dir3::new(look_at - player_position).ok(),
+            desired_forward: Dir3::new(player.look_at - player_global_position).ok(),
             // TODO: this doesn't seem right by the docs / examples?
             float_height: HEIGHT * 0.75,
             ..Default::default()
@@ -115,7 +101,7 @@ pub fn spawn_player(
     let mut commands = commands.spawn((
         Transform::from_translation(position),
         Name::new("Player"),
-        Player,
+        Player::default(),
     ));
 
     commands.insert((
