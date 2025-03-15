@@ -19,33 +19,47 @@ impl InventoryItem {
     }
 }
 
-#[derive(Debug, Default)]
-enum SelectedWeapon {
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Default)]
+pub enum SelectedWeapon {
     #[default]
     Primary,
-    //Secondary,
+    Secondary,
 }
 
 #[derive(Debug, Default, Resource)]
 pub struct Inventory {
     primary: Option<weapon::Weapon>,
-    _secondary: Option<weapon::Weapon>,
+    secondary: Option<weapon::Weapon>,
     selected_weapon: SelectedWeapon,
 
     items: HashMap<InventoryItem, u8>,
 }
 
 impl Inventory {
+    #[allow(dead_code)]
+    pub fn select_weapon(&mut self, weapon: SelectedWeapon) {
+        self.selected_weapon = weapon;
+    }
+
+    #[allow(dead_code)]
+    pub fn toggle_weapon(&mut self) {
+        match self.selected_weapon {
+            SelectedWeapon::Primary => self.select_weapon(SelectedWeapon::Secondary),
+            SelectedWeapon::Secondary => self.select_weapon(SelectedWeapon::Primary),
+        }
+    }
+
     pub fn add_item(&mut self, item: InventoryItem) -> bool {
         match item {
             InventoryItem::Weapon => match self.selected_weapon {
                 SelectedWeapon::Primary => {
                     self.primary = Some(weapon::Weapon::new(item));
                     true
-                } /*SelectedWeapon::Secondary => {
-                      self.secondary = Some(weapon::Weapon::new(item));
-                      true
-                  }*/
+                }
+                SelectedWeapon::Secondary => {
+                    self.secondary = Some(weapon::Weapon::new(item));
+                    true
+                }
             },
             InventoryItem::Throwable | InventoryItem::Consumable => {
                 *self.items.entry(item).or_default() += 1;
