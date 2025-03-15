@@ -2,7 +2,7 @@ use bevy::{prelude::*, render::camera::ScalingMode};
 
 use crate::{AppState, player};
 
-#[derive(Component)]
+#[derive(Debug, Component)]
 pub struct MainCamera(Vec3);
 
 #[derive(Debug)]

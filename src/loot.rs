@@ -5,10 +5,11 @@ use crate::{
     GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, interactables,
 };
 
-#[derive(Component)]
+// TODO: add a type to this
+#[derive(Debug, Component)]
 pub struct GroundLoot;
 
-#[derive(Component)]
+#[derive(Debug, Component)]
 pub struct GroundLootModel;
 
 pub fn spawn_ground_loot(
@@ -52,7 +53,7 @@ pub fn spawn_ground_loot(
             ),
             Sensor,
             Name::new("Interactable"),
-            interactables::Interactable,
+            interactables::Interactable::GroundLoot,
         ));
     });
 }

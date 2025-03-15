@@ -3,11 +3,10 @@ use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
 use crate::{
-    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, events, input,
-    interactables,
+    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, input, interactables,
 };
 
-#[derive(Resource)]
+#[derive(Debug, Resource)]
 #[allow(dead_code)]
 struct Animations {
     animations: Vec<AnimationNodeIndex>,
@@ -20,7 +19,7 @@ pub struct Player;
 #[derive(Debug, Component)]
 pub struct LocalPlayer;
 
-#[derive(Component)]
+#[derive(Debug, Component)]
 pub struct PlayerModel;
 
 const MOVE_SPEED: f32 = 8.0;
@@ -79,15 +78,14 @@ fn update_player(
 }
 
 fn listen_interact(
-    mut evr_interact: EventReader<events::InteractEvent>,
+    mut evr_interact: EventReader<input::InteractInputEvent>,
+    mut evw_interact: EventWriter<interactables::InteractEvent>,
     player_query: Query<&CollidingEntities, With<LocalPlayer>>,
-    interactable_query: Query<&Parent, With<interactables::Interactable>>,
+    interactable_query: Query<(&interactables::Interactable, &Parent)>,
 ) {
     if evr_interact.is_empty() {
         return;
     }
-
-    info!("interact");
 
     let colliding_entities = player_query.single();
 
@@ -96,12 +94,9 @@ fn listen_interact(
             .get(*entity)
             .or_else(|_| interactable_query.get(*entity));
 
-        if let Ok(interactable) = interactable {
-            let interactable = interactable.get();
-            info!(
-                "TODO: player {} interact with interactable {}",
-                entity, interactable
-            );
+        if let Ok((interactable, parent)) = interactable {
+            let parent = parent.get();
+            evw_interact.send(interactables::InteractEvent(parent, *interactable));
             break;
         }
     }

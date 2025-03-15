@@ -6,8 +6,6 @@ use bevy::{
     prelude::*,
 };
 
-use crate::events;
-
 #[derive(Debug, Resource)]
 struct ConnectedGamepad(Entity);
 
@@ -16,6 +14,9 @@ pub struct InputState {
     pub primary: Vec2,
     pub secondary: Vec2,
 }
+
+#[derive(Debug, Default, Event)]
+pub struct InteractInputEvent;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet)]
 pub struct InputSet;
@@ -35,7 +36,7 @@ impl Plugin for InputPlugin {
         )
         .add_systems(PostUpdate, clear_input)
         .init_resource::<InputState>()
-        .add_event::<events::InteractEvent>();
+        .add_event::<InteractInputEvent>();
     }
 }
 
@@ -77,7 +78,7 @@ fn update_mnk(
     mut input_state: ResMut<InputState>,
     //settings: Res<Settings>,
     mut evr_motion: EventReader<MouseMotion>,
-    mut evw_interact: EventWriter<events::InteractEvent>,
+    mut evw_interact: EventWriter<InteractInputEvent>,
 ) {
     /*if !settings.mnk.enabled {
         return;
@@ -118,7 +119,7 @@ fn update_gamepad(
     //settings: Res<Settings>,
     gamepad: Option<Res<ConnectedGamepad>>,
     mut input_state: ResMut<InputState>,
-    mut evw_interact: EventWriter<events::InteractEvent>,
+    mut evw_interact: EventWriter<InteractInputEvent>,
     gamepads: Query<&Gamepad>,
 ) {
     /*if !settings.gamepad.enabled {

@@ -1,7 +1,6 @@
 mod camera;
 mod cursor;
 mod debug;
-mod events;
 mod input;
 mod interactables;
 mod inventory;
@@ -27,7 +26,7 @@ pub enum AppState {
     InGame,
 }
 
-#[derive(PhysicsLayer, Default)]
+#[derive(Debug, PhysicsLayer, Default)]
 pub enum GameCollisionLayers {
     #[default]
     Default,
@@ -170,6 +169,7 @@ fn main() {
             cursor::CursorPlugin,
             world::WorldPlugin,
             player::PlayerPlugin,
+            interactables::InteractablesPlugin,
             debug::DebugPlugin,
         ))
         // update continuously even while unfocused (for networking)

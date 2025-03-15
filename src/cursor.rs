@@ -2,7 +2,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::{AppState, input, player};
 
-#[derive(Component)]
+#[derive(Debug, Component)]
 pub struct Cursor;
 
 #[derive(Debug)]
