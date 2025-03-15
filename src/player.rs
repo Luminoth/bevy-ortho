@@ -3,7 +3,8 @@ use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
 use crate::{
-    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, input, interactable,
+    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, events, input,
+    interactables,
 };
 
 #[derive(Resource)]
@@ -37,7 +38,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (update_player.after(input::InputSet), listen_interactables)
+            (update_player.after(input::InputSet), listen_interact)
                 .chain()
                 .run_if(in_state(AppState::InGame))
                 .in_set(PlayerSet),
@@ -77,10 +78,17 @@ fn update_player(
     }
 }
 
-fn listen_interactables(
+fn listen_interact(
+    mut evr_interact: EventReader<events::InteractEvent>,
     player_query: Query<&CollidingEntities, With<LocalPlayer>>,
-    interactable_query: Query<&Parent, With<interactable::Interactable>>,
+    interactable_query: Query<&Parent, With<interactables::Interactable>>,
 ) {
+    if evr_interact.is_empty() {
+        return;
+    }
+
+    info!("interact");
+
     let colliding_entities = player_query.single();
 
     for entity in colliding_entities.iter() {
@@ -91,11 +99,14 @@ fn listen_interactables(
         if let Ok(interactable) = interactable {
             let interactable = interactable.get();
             info!(
-                "player {} can interact with interactable {}",
+                "TODO: player {} interact with interactable {}",
                 entity, interactable
             );
+            break;
         }
     }
+
+    evr_interact.clear();
 }
 
 pub fn spawn_player(

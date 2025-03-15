@@ -2,7 +2,7 @@ use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
 use crate::{
-    GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, interactable,
+    GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, interactables,
 };
 
 #[derive(Component)]
@@ -52,7 +52,7 @@ pub fn spawn_ground_loot(
             ),
             Sensor,
             Name::new("Interactable"),
-            interactable::Interactable,
+            interactables::Interactable,
         ));
     });
 }

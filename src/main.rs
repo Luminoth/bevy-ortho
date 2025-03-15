@@ -1,8 +1,9 @@
 mod camera;
 mod cursor;
 mod debug;
+mod events;
 mod input;
-mod interactable;
+mod interactables;
 mod inventory;
 mod loot;
 mod player;

@@ -6,6 +6,8 @@ use bevy::{
     prelude::*,
 };
 
+use crate::events;
+
 #[derive(Debug, Resource)]
 struct ConnectedGamepad(Entity);
 
@@ -32,7 +34,8 @@ impl Plugin for InputPlugin {
                 .in_set(InputSet),
         )
         .add_systems(PostUpdate, clear_input)
-        .init_resource::<InputState>();
+        .init_resource::<InputState>()
+        .add_event::<events::InteractEvent>();
     }
 }
 
@@ -71,9 +74,10 @@ fn handle_gamepad_events(
 
 fn update_mnk(
     keys: Res<ButtonInput<KeyCode>>,
-    mut evr_motion: EventReader<MouseMotion>,
     mut input_state: ResMut<InputState>,
     //settings: Res<Settings>,
+    mut evr_motion: EventReader<MouseMotion>,
+    mut evw_interact: EventWriter<events::InteractEvent>,
 ) {
     /*if !settings.mnk.enabled {
         return;
@@ -104,12 +108,17 @@ fn update_mnk(
     }
 
     input_state.secondary += secondary; // * settings.mnk.mouse_sensitivity;
+
+    if keys.just_pressed(KeyCode::KeyE) {
+        evw_interact.send_default();
+    }
 }
 
 fn update_gamepad(
     //settings: Res<Settings>,
     gamepad: Option<Res<ConnectedGamepad>>,
     mut input_state: ResMut<InputState>,
+    mut evw_interact: EventWriter<events::InteractEvent>,
     gamepads: Query<&Gamepad>,
 ) {
     /*if !settings.gamepad.enabled {
@@ -138,5 +147,9 @@ fn update_gamepad(
         input_state.secondary += Vec2::new(
             x, -y, //if settings.gamepad.invert_look { -1.0 } else { 1.0 } * y,
         ) * 10.0; // * settings.gamepad.look_sensitivity
+    }
+
+    if gamepad.just_pressed(GamepadButton::West) {
+        evw_interact.send_default();
     }
 }
