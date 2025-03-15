@@ -2,7 +2,9 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
-use crate::{AppState, camera, cursor, input};
+use crate::{
+    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, input, interactable,
+};
 
 #[derive(Resource)]
 #[allow(dead_code)]
@@ -11,10 +13,11 @@ struct Animations {
     graph: Handle<AnimationGraph>,
 }
 
-#[derive(Debug, Default, Component)]
-pub struct Player {
-    pub look_at: Vec3,
-}
+#[derive(Debug, Component)]
+pub struct Player;
+
+#[derive(Debug, Component)]
+pub struct LocalPlayer;
 
 #[derive(Component)]
 pub struct PlayerModel;
@@ -34,9 +37,9 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (update_player
-                .after(input::InputSet)
-                .run_if(in_state(AppState::InGame)),)
+            (update_player.after(input::InputSet), listen_interactables)
+                .chain()
+                .run_if(in_state(AppState::InGame))
                 .in_set(PlayerSet),
         );
     }
@@ -44,19 +47,17 @@ impl Plugin for PlayerPlugin {
 
 fn update_player(
     input_state: Res<input::InputState>,
-    mut player_query: Query<(&mut TnuaController, &GlobalTransform, &mut Player)>,
+    mut player_query: Query<(&mut TnuaController, &GlobalTransform), With<LocalPlayer>>,
     cursor_query: Query<&Node, With<cursor::Cursor>>,
     camera_query: Query<(&Camera, &GlobalTransform), With<camera::MainCamera>>,
 ) {
-    if let Ok((mut character_controller, player_global_transform, mut player)) =
-        player_query.get_single_mut()
-    {
+    if let Ok((mut character_controller, player_global_transform)) = player_query.get_single_mut() {
         let cursor_node = cursor_query.single();
         let (camera, camera_global_transform) = camera_query.single();
 
         let move_direction = Vec3::new(input_state.primary.x, 0.0, input_state.primary.y);
 
-        player.look_at = cursor::get_cursor_world_position(
+        let look_at = cursor::get_cursor_world_position(
             cursor_node,
             camera,
             camera_global_transform,
@@ -68,11 +69,32 @@ fn update_player(
 
         character_controller.basis(TnuaBuiltinWalk {
             desired_velocity: move_direction.normalize_or_zero() * MOVE_SPEED,
-            desired_forward: Dir3::new(player.look_at - player_global_position).ok(),
+            desired_forward: Dir3::new(look_at - player_global_position).ok(),
             // TODO: this doesn't seem right by the docs / examples?
             float_height: HEIGHT * 0.75,
             ..Default::default()
         });
+    }
+}
+
+fn listen_interactables(
+    player_query: Query<&CollidingEntities, With<LocalPlayer>>,
+    interactable_query: Query<&Parent, With<interactable::Interactable>>,
+) {
+    let colliding_entities = player_query.single();
+
+    for entity in colliding_entities.iter() {
+        let interactable = interactable_query
+            .get(*entity)
+            .or_else(|_| interactable_query.get(*entity));
+
+        if let Ok(interactable) = interactable {
+            let interactable = interactable.get();
+            info!(
+                "player {} can interact with interactable {}",
+                entity, interactable
+            );
+        }
     }
 }
 
@@ -96,14 +118,17 @@ pub fn spawn_player(
 
     let mut commands = commands.spawn((
         spawn_transform.compute_transform(),
+        CollidingEntities::default(),
         Name::new("Player"),
-        Player::default(),
+        Player,
+        LocalPlayer,
     ));
 
     commands.insert((
         RigidBody::Dynamic,
         // TODO: why is the radius so small?
         Collider::capsule(HEIGHT * 0.25, HEIGHT),
+        CollisionLayers::new(GameCollisionLayers::Player, PLAYER_INTERACT_LAYERS),
         Mass(MASS),
         LockedAxes::ROTATION_LOCKED.unlock_rotation_y(),
     ));

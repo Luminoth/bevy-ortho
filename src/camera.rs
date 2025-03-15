@@ -21,7 +21,7 @@ impl Plugin for OrthoCameraPlugin {
 
 fn update_camera(
     mut camera_query: Query<(&mut Transform, &MainCamera)>,
-    player_query: Query<&Transform, (With<player::Player>, Without<MainCamera>)>,
+    player_query: Query<&Transform, (With<player::LocalPlayer>, Without<MainCamera>)>,
 ) {
     if let Ok((mut camera_transform, camera)) = camera_query.get_single_mut() {
         if let Ok(player_transform) = player_query.get_single() {

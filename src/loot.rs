@@ -1,6 +1,10 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
+use crate::{
+    GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, interactable,
+};
+
 #[derive(Component)]
 pub struct GroundLoot;
 
@@ -22,6 +26,7 @@ pub fn spawn_ground_loot(
     commands.insert((
         RigidBody::Static,
         Collider::sphere(0.2),
+        CollisionLayers::new(GameCollisionLayers::Loot, LOOT_INTERACT_LAYERS),
         //Mass(MASS),
         LockedAxes::ROTATION_LOCKED.unlock_rotation_y(),
     ));
@@ -37,6 +42,17 @@ pub fn spawn_ground_loot(
             SceneRoot(model),*/
             Name::new("Model"),
             GroundLootModel,
+        ));
+
+        parent.spawn((
+            Collider::sphere(0.2),
+            CollisionLayers::new(
+                GameCollisionLayers::Interactable,
+                INTERACTABLE_INTERACT_LAYERS,
+            ),
+            Sensor,
+            Name::new("Interactable"),
+            interactable::Interactable,
         ));
     });
 }

@@ -112,11 +112,11 @@ fn debug_ui(
 
 fn game_debug_ui(
     mut contexts: EguiContexts,
-    player_query: Query<(&GlobalTransform, &mut player::Player)>,
+    player_query: Query<&GlobalTransform, With<player::LocalPlayer>>,
     cursor_query: Query<&Node, With<cursor::Cursor>>,
     camera_query: Query<(&Camera, &GlobalTransform), With<camera::MainCamera>>,
 ) {
-    let (player_global_transform, player) = player_query.single();
+    let player_global_transform = player_query.single();
     let cursor_node = cursor_query.single();
     let (camera, camera_global_transform) = camera_query.single();
 
@@ -140,7 +140,6 @@ fn game_debug_ui(
             ui.label(format!("Cursor world position: {}", cursor_world_position));
 
             ui.label(format!("Player position: {}", player_global_translation));
-            ui.label(format!("Player look at: {}", player.look_at));
         });
     });
 }

@@ -2,6 +2,7 @@ mod camera;
 mod cursor;
 mod debug;
 mod input;
+mod interactable;
 mod inventory;
 mod loot;
 mod player;
@@ -9,6 +10,7 @@ mod spawn;
 mod weapon;
 mod world;
 
+use avian3d::prelude::*;
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
@@ -23,6 +25,30 @@ pub enum AppState {
     LoadAssets,
     InGame,
 }
+
+#[derive(PhysicsLayer, Default)]
+pub enum GameCollisionLayers {
+    #[default]
+    Default,
+    World,
+    Player,
+    Loot,
+    Interactable,
+}
+
+pub const WORLD_INTERACT_LAYERS: [GameCollisionLayers; 3] = [
+    GameCollisionLayers::Default,
+    GameCollisionLayers::Player,
+    GameCollisionLayers::Loot,
+];
+pub const PLAYER_INTERACT_LAYERS: [GameCollisionLayers; 3] = [
+    GameCollisionLayers::Default,
+    GameCollisionLayers::World,
+    GameCollisionLayers::Interactable,
+];
+pub const LOOT_INTERACT_LAYERS: [GameCollisionLayers; 2] =
+    [GameCollisionLayers::Default, GameCollisionLayers::World];
+pub const INTERACTABLE_INTERACT_LAYERS: [GameCollisionLayers; 1] = [GameCollisionLayers::Player];
 
 pub fn show_cursor(window: &mut Window, show: bool) {
     window.cursor_options.grab_mode = if show {
@@ -53,6 +79,8 @@ fn load_assets(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut app_state: ResMut<NextState<AppState>>,
 ) {
+    info!("load assets");
+
     camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 5.0, 5.0));
 
     world::spawn_world(
@@ -78,6 +106,8 @@ fn enter_game(
     player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
     loot_spawn_query: Query<&GlobalTransform, With<spawn::GroundLootSpawn>>,
 ) {
+    info!("enter game");
+
     let mut window = window_query.single_mut();
     show_cursor(&mut window, false);
 

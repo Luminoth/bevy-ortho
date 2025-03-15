@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
-use crate::spawn;
+use crate::{GameCollisionLayers, WORLD_INTERACT_LAYERS, spawn};
 
 #[derive(Debug)]
 pub struct WorldPlugin;
@@ -26,7 +26,11 @@ fn spawn_floor(
         Name::new("Floor"),
     ));
 
-    commands.insert((RigidBody::Static, Collider::cuboid(x_len, 0.1, z_len)));
+    commands.insert((
+        RigidBody::Static,
+        Collider::cuboid(x_len, 0.1, z_len),
+        CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
+    ));
 }
 
 fn spawn_box(
@@ -48,7 +52,11 @@ fn spawn_box(
         Name::new("Box"),
     ));
 
-    commands.insert((RigidBody::Static, Collider::cuboid(x_len, y_len, z_len)));
+    commands.insert((
+        RigidBody::Static,
+        Collider::cuboid(x_len, y_len, z_len),
+        CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
+    ));
 }
 
 fn spawn_crate(
@@ -70,7 +78,11 @@ fn spawn_crate(
         Name::new("Box"),
     ));
 
-    commands.insert((RigidBody::Static, Collider::cuboid(x_len, y_len, z_len)));
+    commands.insert((
+        RigidBody::Static,
+        Collider::cuboid(x_len, y_len, z_len),
+        CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
+    ));
 }
 
 pub fn spawn_world(
