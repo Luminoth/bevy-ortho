@@ -3,11 +3,11 @@ use bevy::{color::palettes::css, prelude::*};
 
 use crate::{
     GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, interactables,
+    inventory,
 };
 
-// TODO: add a type to this
 #[derive(Debug, Component)]
-pub struct GroundLoot;
+pub struct GroundLoot(pub inventory::InventoryItem);
 
 #[derive(Debug, Component)]
 pub struct GroundLootModel;
@@ -21,7 +21,8 @@ pub fn spawn_ground_loot(
     let mut commands = commands.spawn((
         spawn_transform.compute_transform(),
         Name::new("Ground Loot"),
-        GroundLoot,
+        // TODO: randomize
+        GroundLoot(inventory::InventoryItem::Grenade),
     ));
 
     commands.insert((

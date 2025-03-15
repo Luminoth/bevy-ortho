@@ -27,7 +27,7 @@ impl Plugin for InteractablesPlugin {
 
 fn listen_interact(
     mut commands: Commands,
-    _inventory: ResMut<inventory::Inventory>,
+    mut inventory: ResMut<inventory::Inventory>,
     mut evr_interact: EventReader<InteractEvent>,
     ground_loot_query: Query<&loot::GroundLoot>,
 ) {
@@ -40,11 +40,10 @@ fn listen_interact(
         Interactable::GroundLoot => {
             let loot = ground_loot_query.get(evt.0).unwrap();
 
-            info!(
-                "TODO: player interact with ground loot {} ({:?})",
-                evt.0, loot
-            );
-            commands.entity(evt.0).despawn_recursive();
+            if inventory.add_item(loot.0) {
+                info!("picked up ground loot");
+                commands.entity(evt.0).despawn_recursive();
+            }
         }
     }
 
