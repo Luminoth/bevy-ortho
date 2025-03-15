@@ -2,8 +2,8 @@ use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
 use crate::{
-    GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, interactables,
-    inventory,
+    GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, RandomSource,
+    interactables, inventory,
 };
 
 #[derive(Debug, Component)]
@@ -16,13 +16,13 @@ pub fn spawn_ground_loot(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
+    random: &mut RandomSource,
     spawn_transform: &GlobalTransform,
 ) {
     let mut commands = commands.spawn((
         spawn_transform.compute_transform(),
         Name::new("Ground Loot"),
-        // TODO: randomize
-        GroundLoot(inventory::InventoryItem::Grenade),
+        GroundLoot(inventory::InventoryItem::new_random(random)),
     ));
 
     commands.insert((

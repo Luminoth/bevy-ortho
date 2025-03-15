@@ -15,8 +15,12 @@ use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
+use rand::prelude::*;
 
 const DEFAULT_RESOLUTION: (f32, f32) = (1280.0, 720.0);
+
+#[derive(Debug, Deref, DerefMut, Resource)]
+pub struct RandomSource(StdRng);
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, States, Reflect)]
 pub enum AppState {
@@ -58,6 +62,11 @@ pub fn show_cursor(window: &mut Window, show: bool) {
     };
 
     window.cursor_options.visible = show;
+}
+
+fn setup(mut commands: Commands) {
+    let rng = StdRng::from_rng(&mut rand::rng());
+    commands.insert_resource(RandomSource(rng));
 }
 
 fn wait_for_window(
@@ -102,6 +111,7 @@ fn enter_game(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut graphs: ResMut<Assets<AnimationGraph>>,
+    mut random: ResMut<RandomSource>,
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
     player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
     loot_spawn_query: Query<&GlobalTransform, With<spawn::GroundLootSpawn>>,
@@ -124,7 +134,13 @@ fn enter_game(
     player::spawn_player(&mut commands, &asset_server, &mut graphs, player_spawn);
 
     for loot_spawn in loot_spawn_query.iter() {
-        loot::spawn_ground_loot(&mut commands, &mut meshes, &mut materials, loot_spawn);
+        loot::spawn_ground_loot(
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+            &mut random,
+            loot_spawn,
+        );
     }
 }
 
@@ -179,7 +195,8 @@ fn main() {
         })
         .init_state::<AppState>();
 
-    app.add_systems(Update, wait_for_window.run_if(in_state(AppState::Init)))
+    app.add_systems(Startup, setup)
+        .add_systems(Update, wait_for_window.run_if(in_state(AppState::Init)))
         .add_systems(OnEnter(AppState::LoadAssets), load_assets)
         .add_systems(OnEnter(AppState::InGame), enter_game)
         .add_systems(

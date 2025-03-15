@@ -41,7 +41,7 @@ fn listen_interact(
             let loot = ground_loot_query.get(evt.0).unwrap();
 
             if inventory.add_item(loot.0) {
-                info!("picked up ground loot");
+                info!("picked up ground loot {:?}", loot.0);
                 commands.entity(evt.0).despawn_recursive();
             }
         }
