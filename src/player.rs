@@ -79,10 +79,8 @@ fn update_player(
 pub fn spawn_player(
     commands: &mut Commands,
     asset_server: &AssetServer,
-    _meshes: &mut Assets<Mesh>,
-    _materials: &mut Assets<StandardMaterial>,
     graphs: &mut Assets<AnimationGraph>,
-    position: Vec3,
+    spawn_transform: &GlobalTransform,
 ) {
     let (graph, node_indices) = AnimationGraph::from_clips([
         asset_server.load(GltfAssetLabel::Animation(0).from_asset(MODEL_PATH))
@@ -97,7 +95,7 @@ pub fn spawn_player(
     let model = asset_server.load(GltfAssetLabel::Scene(0).from_asset(MODEL_PATH));
 
     let mut commands = commands.spawn((
-        Transform::from_translation(position),
+        spawn_transform.compute_transform(),
         Name::new("Player"),
         Player::default(),
     ));
@@ -118,7 +116,9 @@ pub fn spawn_player(
     commands.with_children(|parent| {
         parent.spawn((
             // TODO: this is because our temp model is at 1.0 instead of 0.0
-            Transform::from_xyz(0.0, -1.0, 0.0),
+            // and rotated 180 degrees around the Y axis
+            Transform::from_xyz(0.0, -1.0, 0.0)
+                .with_rotation(Quat::from_axis_angle(Vec3::Y, 180.0_f32.to_radians())),
             SceneRoot(model),
             Name::new("Model"),
             PlayerModel,

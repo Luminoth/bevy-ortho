@@ -1,6 +1,8 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
+use crate::spawn;
+
 #[derive(Debug)]
 pub struct WorldPlugin;
 
@@ -130,4 +132,14 @@ pub fn spawn_world(
         Vec3::new(-5.0, 0.5, -5.0),
         rotation,
     );
+
+    commands.spawn((
+        Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),
+        spawn::PlayerSpawn,
+    ));
+
+    commands.spawn((
+        Transform::from_translation(Vec3::new(-3.5, 1.0, -2.0)),
+        spawn::GroundLootSpawn,
+    ));
 }

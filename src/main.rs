@@ -2,7 +2,11 @@ mod camera;
 mod cursor;
 mod debug;
 mod input;
+mod inventory;
+mod loot;
 mod player;
+mod spawn;
+mod weapon;
 mod world;
 
 use bevy::{
@@ -16,6 +20,7 @@ const DEFAULT_RESOLUTION: (f32, f32) = (1280.0, 720.0);
 pub enum AppState {
     #[default]
     Init,
+    LoadAssets,
     InGame,
 }
 
@@ -38,27 +43,16 @@ fn wait_for_window(
     // and there's no way to tell when that happens beyond waiting
     // for an arbitrary number of frames to pass by lol
     if frames.0 > 5 {
-        app_state.set(AppState::InGame);
+        app_state.set(AppState::LoadAssets);
     }
 }
 
-fn enter_game(
+fn load_assets(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut graphs: ResMut<Assets<AnimationGraph>>,
-    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    mut app_state: ResMut<NextState<AppState>>,
 ) {
-    let mut window = window_query.single_mut();
-
-    show_cursor(&mut window, false);
-
-    cursor::spawn_cursor(
-        &mut commands,
-        Vec2::new(window.width() * 0.5, window.height() * 0.5),
-    );
-
     camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 5.0, 5.0));
 
     world::spawn_world(
@@ -68,14 +62,40 @@ fn enter_game(
         Quat::from_axis_angle(Vec3::Y, 45.0_f32.to_radians()),
     );
 
-    player::spawn_player(
+    app_state.set(AppState::InGame);
+}
+
+// TODO: this could be split up like
+// spawn_player/s, spawn_loot, init_ui, etc
+#[allow(clippy::too_many_arguments)]
+fn enter_game(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut graphs: ResMut<Assets<AnimationGraph>>,
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
+    loot_spawn_query: Query<&GlobalTransform, With<spawn::GroundLootSpawn>>,
+) {
+    let mut window = window_query.single_mut();
+    show_cursor(&mut window, false);
+
+    // UI
+    cursor::spawn_cursor(
         &mut commands,
-        &asset_server,
-        &mut meshes,
-        &mut materials,
-        &mut graphs,
-        Vec3::new(0.0, 1.0, 0.0),
+        Vec2::new(window.width() * 0.5, window.height() * 0.5),
     );
+
+    commands.init_resource::<inventory::Inventory>();
+
+    // player
+    let player_spawn = player_spawn_query.single();
+    player::spawn_player(&mut commands, &asset_server, &mut graphs, player_spawn);
+
+    for loot_spawn in loot_spawn_query.iter() {
+        loot::spawn_ground_loot(&mut commands, &mut meshes, &mut materials, loot_spawn);
+    }
 }
 
 fn quit_game(mut exit: EventWriter<AppExit>) {
@@ -129,6 +149,7 @@ fn main() {
         .init_state::<AppState>();
 
     app.add_systems(Update, wait_for_window.run_if(in_state(AppState::Init)))
+        .add_systems(OnEnter(AppState::LoadAssets), load_assets)
         .add_systems(OnEnter(AppState::InGame), enter_game)
         .add_systems(
             Update,

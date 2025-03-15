@@ -130,14 +130,12 @@ pub fn get_cursor_world_position(
     let plane = InfinitePlane3d::new(player_global_transform.up());
 
     let cursor_viewport_position = get_cursor_viewport_position(cursor_node).unwrap_or_default();
-    let Ok(ray) = camera.viewport_to_world(camera_global_transform, cursor_viewport_position)
-    else {
-        return None;
-    };
 
-    let Some(distance) = ray.intersect_plane(plane_origin, plane) else {
-        return None;
-    };
+    let ray = camera
+        .viewport_to_world(camera_global_transform, cursor_viewport_position)
+        .ok()?;
+
+    let distance = ray.intersect_plane(plane_origin, plane)?;
 
     Some(ray.get_point(distance))
 }
