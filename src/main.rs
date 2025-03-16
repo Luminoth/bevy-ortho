@@ -1,5 +1,6 @@
 mod camera;
 mod cursor;
+mod data;
 mod debug;
 mod input;
 mod interactables;
@@ -67,6 +68,10 @@ pub fn show_cursor(window: &mut Window, show: bool) {
 fn setup(mut commands: Commands) {
     let rng = StdRng::from_rng(&mut rand::rng());
     commands.insert_resource(RandomSource(rng));
+
+    // init data
+    let _ = &*data::AMMO_DATA;
+    let _ = &*data::WEAPON_DATA;
 }
 
 fn wait_for_window(
