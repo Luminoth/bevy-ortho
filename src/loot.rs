@@ -6,8 +6,8 @@ use crate::{
     interactables, inventory,
 };
 
-#[derive(Debug, Component)]
-pub struct GroundLoot(pub inventory::InventoryItem);
+#[derive(Debug, Deref, Component)]
+pub struct GroundLoot(inventory::InventoryItem);
 
 #[derive(Debug, Component)]
 pub struct GroundLootModel;

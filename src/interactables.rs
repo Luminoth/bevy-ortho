@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use bevy::prelude::*;
 
 use crate::{AppState, inventory, loot, player};
@@ -40,8 +42,8 @@ fn listen_interact(
         Interactable::GroundLoot => {
             let loot = ground_loot_query.get(evt.0).unwrap();
 
-            if inventory.add_item(loot.0) {
-                info!("picked up ground loot {:?}", loot.0);
+            if inventory.add_item(*loot.deref()) {
+                info!("picked up ground loot {:?}", loot.deref());
                 commands.entity(evt.0).despawn_recursive();
             }
         }
