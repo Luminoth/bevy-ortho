@@ -9,6 +9,7 @@ use crate::{RandomSource, weapon};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumIter)]
 pub enum InventoryItem {
     Weapon,
+    Ammo,
     Throwable,
     Consumable,
 }
@@ -63,7 +64,7 @@ impl Inventory {
                     true
                 }
             },
-            InventoryItem::Throwable | InventoryItem::Consumable => {
+            InventoryItem::Ammo | InventoryItem::Throwable | InventoryItem::Consumable => {
                 *self.items.entry(item).or_default() += 1;
                 true
             }
