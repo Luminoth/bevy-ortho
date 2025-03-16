@@ -25,6 +25,7 @@ pub struct LocalPlayer;
 #[derive(Debug, Component)]
 pub struct PlayerModel;
 
+// TODO: move to player data
 const MOVE_SPEED: f32 = 8.0;
 const HEIGHT: f32 = 2.0;
 const MASS: f32 = 75.0;

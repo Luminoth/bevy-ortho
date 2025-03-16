@@ -19,6 +19,9 @@ use bevy::{
 use rand::prelude::*;
 
 const DEFAULT_RESOLUTION: (f32, f32) = (1280.0, 720.0);
+const VIEWPORT_HEIGHT: f32 = 20.0;
+const CAMERA_OFFSET: Vec3 = Vec3::new(0.0, 5.0, 5.0);
+const WORLD_ROTATION: f32 = 45.0_f32.to_radians();
 
 #[derive(Debug, Deref, DerefMut, Resource)]
 pub struct RandomSource(StdRng);
@@ -69,9 +72,7 @@ fn setup(mut commands: Commands) {
     let rng = StdRng::from_rng(&mut rand::rng());
     commands.insert_resource(RandomSource(rng));
 
-    // init data
-    let _ = &*data::AMMO_DATA;
-    let _ = &*data::WEAPON_DATA;
+    data::register_data(&mut commands);
 }
 
 fn wait_for_window(
@@ -95,13 +96,13 @@ fn load_assets(
 ) {
     info!("load assets");
 
-    camera::spawn_main_camera(&mut commands, 20.0, Vec3::new(0.0, 5.0, 5.0));
+    camera::spawn_main_camera(&mut commands, VIEWPORT_HEIGHT, CAMERA_OFFSET);
 
     world::spawn_world(
         &mut commands,
         &mut meshes,
         &mut materials,
-        Quat::from_axis_angle(Vec3::Y, 45.0_f32.to_radians()),
+        Quat::from_axis_angle(Vec3::Y, WORLD_ROTATION),
     );
 
     app_state.set(AppState::InGame);
