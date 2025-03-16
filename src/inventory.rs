@@ -36,12 +36,14 @@ pub struct Inventory {
 }
 
 impl Inventory {
-    #[allow(dead_code)]
+    pub fn has_weapon(&self) -> bool {
+        self.primary.is_some() || self.secondary.is_some()
+    }
+
     pub fn select_weapon(&mut self, weapon: SelectedWeapon) {
         self.selected_weapon = weapon;
     }
 
-    #[allow(dead_code)]
     pub fn toggle_weapon(&mut self) {
         match self.selected_weapon {
             SelectedWeapon::Primary => self.select_weapon(SelectedWeapon::Secondary),

@@ -6,6 +6,8 @@ use bevy::{
     prelude::*,
 };
 
+use crate::inventory;
+
 #[derive(Debug, Resource)]
 struct ConnectedGamepad(Entity);
 
@@ -15,8 +17,16 @@ pub struct InputState {
     pub secondary: Vec2,
 }
 
+// TODO: genericize input events
+
 #[derive(Debug, Default, Event)]
 pub struct InteractInputEvent;
+
+#[derive(Debug, Default, Event)]
+pub struct ToggleWeaponInputEvent;
+
+#[derive(Debug, Deref, Event)]
+pub struct SelectWeaponInputEvent(inventory::SelectedWeapon);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet)]
 pub struct InputSet;
@@ -36,7 +46,9 @@ impl Plugin for InputPlugin {
         )
         .add_systems(PostUpdate, clear_input)
         .init_resource::<InputState>()
-        .add_event::<InteractInputEvent>();
+        .add_event::<InteractInputEvent>()
+        .add_event::<ToggleWeaponInputEvent>()
+        .add_event::<SelectWeaponInputEvent>();
     }
 }
 
@@ -79,6 +91,7 @@ fn update_mnk(
     //settings: Res<Settings>,
     mut evr_motion: EventReader<MouseMotion>,
     mut evw_interact: EventWriter<InteractInputEvent>,
+    mut evw_select_weapons: EventWriter<SelectWeaponInputEvent>,
 ) {
     /*if !settings.mnk.enabled {
         return;
@@ -113,6 +126,13 @@ fn update_mnk(
     if keys.just_pressed(KeyCode::KeyE) {
         evw_interact.send_default();
     }
+
+    if keys.just_pressed(KeyCode::Numpad1) {
+        evw_select_weapons.send(SelectWeaponInputEvent(inventory::SelectedWeapon::Primary));
+    }
+    if keys.just_pressed(KeyCode::Numpad2) {
+        evw_select_weapons.send(SelectWeaponInputEvent(inventory::SelectedWeapon::Secondary));
+    }
 }
 
 fn update_gamepad(
@@ -120,6 +140,7 @@ fn update_gamepad(
     gamepad: Option<Res<ConnectedGamepad>>,
     mut input_state: ResMut<InputState>,
     mut evw_interact: EventWriter<InteractInputEvent>,
+    mut evw_toggle_weapons: EventWriter<ToggleWeaponInputEvent>,
     gamepads: Query<&Gamepad>,
 ) {
     /*if !settings.gamepad.enabled {
@@ -152,5 +173,9 @@ fn update_gamepad(
 
     if gamepad.just_pressed(GamepadButton::West) {
         evw_interact.send_default();
+    }
+
+    if gamepad.just_pressed(GamepadButton::North) {
+        evw_toggle_weapons.send_default();
     }
 }

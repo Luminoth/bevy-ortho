@@ -1,9 +1,12 @@
+use std::ops::Deref;
+
 use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
 use crate::{
     AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, input, interactables,
+    inventory,
 };
 
 #[derive(Debug, Resource)]
@@ -37,7 +40,11 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (update_player.after(input::InputSet), listen_interact)
+            (
+                update_player.after(input::InputSet),
+                listen_interact,
+                listen_weapon_select,
+            )
                 .chain()
                 .run_if(in_state(AppState::InGame))
                 .in_set(PlayerSet),
@@ -102,6 +109,26 @@ fn listen_interact(
     }
 
     evr_interact.clear();
+}
+
+fn listen_weapon_select(
+    mut inventory: ResMut<inventory::Inventory>,
+    mut evr_toggle_weapon: EventReader<input::ToggleWeaponInputEvent>,
+    mut evr_select_weapon: EventReader<input::SelectWeaponInputEvent>,
+) {
+    if inventory.has_weapon() {
+        if evr_select_weapon.is_empty() {
+            if !evr_toggle_weapon.is_empty() {
+                inventory.toggle_weapon();
+            }
+        } else {
+            let selected = evr_select_weapon.read().next().unwrap();
+            inventory.select_weapon(*selected.deref());
+        }
+    }
+
+    evr_toggle_weapon.clear();
+    evr_select_weapon.clear();
 }
 
 pub fn spawn_player(
