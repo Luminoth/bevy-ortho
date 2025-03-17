@@ -147,11 +147,13 @@ pub fn spawn_world(
 
     commands.spawn((
         Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),
+        Name::new("Player Spawn"),
         spawn::PlayerSpawn,
     ));
 
     commands.spawn((
         Transform::from_translation(Vec3::new(-3.5, 1.0, -2.0)),
+        Name::new("Ground Loot Spawn"),
         spawn::GroundLootSpawn,
     ));
 }

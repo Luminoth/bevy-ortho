@@ -25,16 +25,17 @@ fn update_cursor(
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let mut cursor_node = cursor_query.single_mut();
-    let window = window_query.single();
 
-    let movement = Vec2::new(input_state.secondary.x, input_state.secondary.y);
+    if let Ok(window) = window_query.get_single() {
+        let movement = Vec2::new(input_state.secondary.x, input_state.secondary.y);
 
-    if let Val::Px(left) = &mut cursor_node.left {
-        *left = (*left + movement.x).clamp(0.0, window.width() - 1.0);
-    }
+        if let Val::Px(left) = &mut cursor_node.left {
+            *left = (*left + movement.x).clamp(0.0, window.width() - 1.0);
+        }
 
-    if let Val::Px(top) = &mut cursor_node.top {
-        *top = (*top + movement.y).clamp(0.0, window.height() - 1.0);
+        if let Val::Px(top) = &mut cursor_node.top {
+            *top = (*top + movement.y).clamp(0.0, window.height() - 1.0);
+        }
     }
 }
 

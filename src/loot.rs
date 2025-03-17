@@ -6,11 +6,49 @@ use crate::{
     interactables, inventory,
 };
 
+#[derive(Debug, Component)]
+#[require(Transform)]
+pub struct Bobber {
+    bob_amp: f32,
+    bob_speed: f32,
+    rot_speed: f32,
+}
+
+impl Default for Bobber {
+    fn default() -> Self {
+        Self {
+            bob_amp: 0.5,
+            bob_speed: 1.25,
+            rot_speed: 1.0,
+        }
+    }
+}
+
 #[derive(Debug, Deref, Component)]
 pub struct GroundLoot(inventory::InventoryItem);
 
 #[derive(Debug, Component)]
+#[require(Bobber)]
 pub struct GroundLootModel;
+
+#[derive(Debug)]
+pub struct GroundLootPlugin;
+
+impl Plugin for GroundLootPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, update_bobbers);
+    }
+}
+
+fn update_bobbers(time: Res<Time>, mut bobber_query: Query<(&Bobber, &mut Transform)>) {
+    for (bobber, mut transform) in bobber_query.iter_mut() {
+        transform.translation.y = bobber.bob_amp
+            + bobber.bob_amp
+                * (time.elapsed_secs() * bobber.bob_speed * std::f32::consts::FRAC_PI_2).sin();
+
+        transform.rotate_y(std::f32::consts::TAU * time.delta_secs() * bobber.rot_speed);
+    }
+}
 
 pub fn spawn_ground_loot(
     commands: &mut Commands,

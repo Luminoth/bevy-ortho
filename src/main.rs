@@ -190,6 +190,7 @@ fn main() {
             input::InputPlugin,
             cursor::CursorPlugin,
             world::WorldPlugin,
+            loot::GroundLootPlugin,
             player::PlayerPlugin,
             interactables::InteractablesPlugin,
             debug::DebugPlugin,
