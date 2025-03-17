@@ -21,7 +21,23 @@ impl Weapon {
     }
 
     #[allow(dead_code)]
-    pub fn can_fire(&self, data: &data::WeaponData, time: &Time) -> bool {
+    pub fn can_fire(&self, datum: &data::WeaponDatum, time: &Time) -> bool {
+        // TODO: handle semi-auto
+        // TODO: verify ammo
+
+        let data = datum.get(&self.r#type).unwrap();
         self.last_fire_ts + data.fire_rate <= time.elapsed_secs()
+    }
+
+    pub fn fire(&mut self, datum: &data::WeaponDatum, time: &Time) {
+        if !self.can_fire(datum, time) {
+            return;
+        }
+
+        // TODO:
+        info!("firing weapon");
+        self.last_fire_ts = time.elapsed_secs();
+
+        // TODO: consume ammo
     }
 }

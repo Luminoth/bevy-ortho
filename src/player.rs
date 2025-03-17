@@ -5,8 +5,8 @@ use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
 use crate::{
-    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, input, interactables,
-    inventory,
+    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, data, input,
+    interactables, inventory,
 };
 
 #[derive(Debug, Resource)]
@@ -41,7 +41,10 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (update_player, (listen_interact, listen_weapon_select))
+            (
+                update_player,
+                (listen_interact, listen_weapon_select, handle_firing),
+            )
                 .chain()
                 .after(input::InputSet)
                 .run_if(in_state(AppState::InGame))
@@ -117,16 +120,35 @@ fn listen_weapon_select(
     if inventory.has_weapon() {
         if evr_select_weapon.is_empty() {
             if !evr_toggle_weapon.is_empty() {
+                // TODO: this takes time
                 inventory.toggle_weapon();
             }
         } else {
             let selected = evr_select_weapon.read().next().unwrap();
+
+            // TODO: this takes time
             inventory.select_weapon(*selected.deref());
         }
     }
 
     evr_toggle_weapon.clear();
     evr_select_weapon.clear();
+}
+
+fn handle_firing(
+    input_state: Res<input::InputState>,
+    mut inventory: ResMut<inventory::Inventory>,
+    datum: Res<data::WeaponDataSource>,
+    time: Res<Time>,
+) {
+    if !input_state.firing {
+        return;
+    }
+
+    let weapon = inventory.get_selected_weapon_mut();
+    if let Some(weapon) = weapon {
+        weapon.fire(&datum, &time);
+    }
 }
 
 pub fn spawn_player(

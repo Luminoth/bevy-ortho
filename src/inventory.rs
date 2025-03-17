@@ -48,6 +48,13 @@ impl Inventory {
         self.primary.is_some() || self.secondary.is_some()
     }
 
+    pub fn get_selected_weapon_mut(&mut self) -> Option<&mut weapon::Weapon> {
+        match self.selected_weapon {
+            SelectedWeapon::Primary => self.primary.as_mut(),
+            SelectedWeapon::Secondary => self.secondary.as_mut(),
+        }
+    }
+
     pub fn select_weapon(&mut self, weapon: SelectedWeapon) {
         self.selected_weapon = weapon;
     }
