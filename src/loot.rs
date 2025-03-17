@@ -1,5 +1,5 @@
 use avian3d::prelude::*;
-use bevy::{color::palettes::css, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, RandomSource,
@@ -19,7 +19,7 @@ impl Default for Bobber {
         Self {
             bob_amp: 0.5,
             bob_speed: 1.25,
-            rot_speed: 1.0,
+            rot_speed: 0.25,
         }
     }
 }
@@ -57,24 +57,24 @@ pub fn spawn_ground_loot(
     random: &mut RandomSource,
     spawn_transform: &GlobalTransform,
 ) {
+    let item = inventory::InventoryItem::new_random(random);
+
     let mut commands = commands.spawn((
         spawn_transform.compute_transform(),
         Name::new("Ground Loot"),
-        GroundLoot(inventory::InventoryItem::new_random(random)),
+        GroundLoot(item),
     ));
 
     commands.insert((
         RigidBody::Static,
-        Collider::sphere(0.2),
+        item.gen_collider(),
         CollisionLayers::new(GameCollisionLayers::Loot, LOOT_INTERACT_LAYERS),
-        //Mass(MASS),
         LockedAxes::ROTATION_LOCKED.unlock_rotation_y(),
     ));
 
     commands.with_children(|parent| {
         parent.spawn((
-            Mesh3d(meshes.add(Sphere::new(0.2))),
-            MeshMaterial3d(materials.add(Color::from(css::FUCHSIA))),
+            item.gen_model(meshes, materials),
             // TODO: this is because our temp model is at 1.0 instead of 0.0
             // and rotated 180 degrees around the Y axis
             /*Transform::from_xyz(0.0, -1.0, 0.0)
@@ -84,8 +84,9 @@ pub fn spawn_ground_loot(
             GroundLootModel,
         ));
 
+        // TODO: move to interactables module
         parent.spawn((
-            Collider::sphere(0.2),
+            Collider::sphere(0.5),
             CollisionLayers::new(
                 GameCollisionLayers::Interactable,
                 INTERACTABLE_INTERACT_LAYERS,
