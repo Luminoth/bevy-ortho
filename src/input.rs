@@ -15,6 +15,8 @@ struct ConnectedGamepad(Entity);
 pub struct InputState {
     pub primary: Vec2,
     pub secondary: Vec2,
+
+    pub firing: bool,
 }
 
 // TODO: genericize input events
@@ -87,6 +89,7 @@ fn handle_gamepad_events(
 
 fn update_mnk(
     keys: Res<ButtonInput<KeyCode>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut input_state: ResMut<InputState>,
     //settings: Res<Settings>,
     mut evr_motion: EventReader<MouseMotion>,
@@ -133,6 +136,8 @@ fn update_mnk(
     if keys.just_pressed(KeyCode::Numpad2) {
         evw_select_weapons.send(SelectWeaponInputEvent(inventory::SelectedWeapon::Secondary));
     }
+
+    input_state.firing = mouse_buttons.pressed(MouseButton::Left);
 }
 
 fn update_gamepad(
@@ -174,8 +179,9 @@ fn update_gamepad(
     if gamepad.just_pressed(GamepadButton::West) {
         evw_interact.send_default();
     }
-
     if gamepad.just_pressed(GamepadButton::North) {
         evw_toggle_weapons.send_default();
     }
+
+    input_state.firing = gamepad.pressed(GamepadButton::RightTrigger);
 }
