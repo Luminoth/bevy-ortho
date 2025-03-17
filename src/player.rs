@@ -41,12 +41,9 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                update_player.after(input::InputSet),
-                listen_interact,
-                listen_weapon_select,
-            )
+            (update_player, (listen_interact, listen_weapon_select))
                 .chain()
+                .after(input::InputSet)
                 .run_if(in_state(AppState::InGame))
                 .in_set(PlayerSet),
         );

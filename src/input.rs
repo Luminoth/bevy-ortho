@@ -40,11 +40,7 @@ impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                handle_gamepad_events,
-                (update_mnk, (update_gamepad.after(handle_gamepad_events))),
-            )
-                .in_set(InputSet),
+            ((handle_gamepad_events, update_gamepad).chain(), update_mnk).in_set(InputSet),
         )
         .add_systems(PostUpdate, clear_input)
         .init_resource::<InputState>()
