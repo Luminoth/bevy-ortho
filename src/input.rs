@@ -20,6 +20,7 @@ pub struct InputState {
 }
 
 // TODO: genericize input events
+// TODO: make input events triggers
 
 #[derive(Debug, Default, Event)]
 pub struct InteractInputEvent;
@@ -53,6 +54,8 @@ impl Plugin for InputPlugin {
 fn clear_input(mut input_state: ResMut<InputState>) {
     input_state.primary = Vec2::ZERO;
     input_state.secondary = Vec2::ZERO;
+
+    input_state.firing = false;
 }
 
 fn handle_gamepad_events(
@@ -133,7 +136,7 @@ fn update_mnk(
         evw_select_weapons.send(SelectWeaponInputEvent(inventory::SelectedWeapon::Secondary));
     }
 
-    input_state.firing = mouse_buttons.pressed(MouseButton::Left);
+    input_state.firing = input_state.firing || mouse_buttons.pressed(MouseButton::Left);
 }
 
 fn update_gamepad(
@@ -179,5 +182,5 @@ fn update_gamepad(
         evw_toggle_weapons.send_default();
     }
 
-    input_state.firing = gamepad.pressed(GamepadButton::RightTrigger);
+    input_state.firing = input_state.firing || gamepad.pressed(GamepadButton::RightTrigger);
 }

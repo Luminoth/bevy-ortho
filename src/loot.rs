@@ -36,11 +36,11 @@ pub struct GroundLootPlugin;
 
 impl Plugin for GroundLootPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_bobbers);
+        app.add_systems(Update, animate_bobbers);
     }
 }
 
-fn update_bobbers(time: Res<Time>, mut bobber_query: Query<(&Bobber, &mut Transform)>) {
+fn animate_bobbers(time: Res<Time>, mut bobber_query: Query<(&Bobber, &mut Transform)>) {
     for (bobber, mut transform) in bobber_query.iter_mut() {
         transform.translation.y = bobber.bob_amp
             + bobber.bob_amp

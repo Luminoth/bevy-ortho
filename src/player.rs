@@ -136,6 +136,7 @@ fn listen_weapon_select(
 }
 
 fn handle_firing(
+    mut commands: Commands,
     input_state: Res<input::InputState>,
     mut inventory: ResMut<inventory::Inventory>,
     datum: Res<data::WeaponDataSource>,
@@ -147,7 +148,7 @@ fn handle_firing(
 
     let weapon = inventory.get_selected_weapon_mut();
     if let Some(weapon) = weapon {
-        weapon.fire(&datum, &time);
+        weapon.fire(&mut commands, &datum, &time);
     }
 }
 

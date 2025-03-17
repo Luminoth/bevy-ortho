@@ -1,0 +1,94 @@
+use avian3d::prelude::*;
+use bevy::{color::palettes::css, prelude::*};
+
+use crate::{GameCollisionLayers, PROJECTILE_INTERACT_LAYERS, player};
+
+#[derive(Debug, Component)]
+#[require(Transform)]
+pub struct Bullet {
+    max_distance: f32,
+    distance_traveled: f32,
+
+    speed: f32,
+}
+
+#[derive(Debug, Component)]
+pub struct BulletModel;
+
+const MASS: f32 = 0.005;
+
+impl Bullet {
+    fn new(speed: f32, max_distance: f32) -> Self {
+        Self {
+            max_distance,
+            distance_traveled: 0.0,
+            speed,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct BulletPlugin;
+
+impl Plugin for BulletPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(FixedUpdate, update_bullets.after(player::PlayerSet));
+    }
+}
+
+fn update_bullets(
+    mut commands: Commands,
+    time: Res<Time<Fixed>>,
+    mut bullet_query: Query<(Entity, &mut Bullet, &mut Transform)>,
+) {
+    for (entity, mut bullet, mut transform) in bullet_query.iter_mut() {
+        if bullet.distance_traveled > bullet.max_distance {
+            commands.entity(entity).despawn_recursive();
+            continue;
+        }
+
+        let direction = transform.forward();
+        let distance = bullet.speed * time.elapsed_secs();
+        transform.translation += direction * distance;
+
+        bullet.distance_traveled += distance;
+    }
+}
+
+pub fn spawn_bullet(
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    spawn_position: Vec3,
+    facing: Dir3,
+    speed: f32,
+    max_distance: f32,
+) {
+    let mut commands = commands.spawn((
+        Transform::from_translation(spawn_position).looking_to(facing, Vec3::Y),
+        Name::new("Bullet"),
+        Bullet::new(speed, max_distance),
+    ));
+
+    commands.insert((
+        RigidBody::Dynamic,
+        Collider::sphere(0.1),
+        CollisionLayers::new(GameCollisionLayers::Projectile, PROJECTILE_INTERACT_LAYERS),
+        Mass(MASS),
+        LockedAxes::ROTATION_LOCKED,
+    ));
+
+    commands.with_children(|parent| {
+        parent.spawn((
+            Mesh3d(meshes.add(Sphere::new(0.1))),
+            MeshMaterial3d(materials.add(Color::from(css::BLACK))),
+            // TODO: this is because our temp model is at 1.0 instead of 0.0
+            // and rotated 180 degrees around the Y axis
+            /*Transform::from_xyz(0.0, -1.0, 0.0)
+                .with_rotation(Quat::from_axis_angle(Vec3::Y, 180.0_f32.to_radians())),
+            SceneRoot(model),*/
+            Name::new("Model"),
+            BulletModel,
+        ));
+    });
+}

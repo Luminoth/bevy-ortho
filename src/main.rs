@@ -1,3 +1,4 @@
+mod bullet;
 mod camera;
 mod cursor;
 mod data;
@@ -41,21 +42,29 @@ pub enum GameCollisionLayers {
     World,
     Player,
     Loot,
+    Projectile,
     Interactable,
 }
 
-pub const WORLD_INTERACT_LAYERS: [GameCollisionLayers; 3] = [
+pub const WORLD_INTERACT_LAYERS: [GameCollisionLayers; 4] = [
     GameCollisionLayers::Default,
     GameCollisionLayers::Player,
     GameCollisionLayers::Loot,
+    GameCollisionLayers::Projectile,
 ];
-pub const PLAYER_INTERACT_LAYERS: [GameCollisionLayers; 3] = [
+pub const PLAYER_INTERACT_LAYERS: [GameCollisionLayers; 4] = [
     GameCollisionLayers::Default,
     GameCollisionLayers::World,
+    GameCollisionLayers::Projectile,
     GameCollisionLayers::Interactable,
 ];
 pub const LOOT_INTERACT_LAYERS: [GameCollisionLayers; 2] =
     [GameCollisionLayers::Default, GameCollisionLayers::World];
+pub const PROJECTILE_INTERACT_LAYERS: [GameCollisionLayers; 3] = [
+    GameCollisionLayers::Default,
+    GameCollisionLayers::World,
+    GameCollisionLayers::Player,
+];
 pub const INTERACTABLE_INTERACT_LAYERS: [GameCollisionLayers; 1] = [GameCollisionLayers::Player];
 
 pub fn show_cursor(window: &mut Window, show: bool) {
@@ -192,6 +201,8 @@ fn main() {
             world::WorldPlugin,
             loot::GroundLootPlugin,
             player::PlayerPlugin,
+            weapon::WeaponPlugin,
+            bullet::BulletPlugin,
             interactables::InteractablesPlugin,
             debug::DebugPlugin,
         ))
