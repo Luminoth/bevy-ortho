@@ -2,21 +2,28 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 use rand::prelude::*;
-use strum::IntoEnumIterator;
+use strum::{EnumCount, IntoEnumIterator};
 
-use crate::{RandomSource, weapon};
+use crate::{RandomSource, data, weapon};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumCount)]
 pub enum InventoryItem {
-    Weapon,
-    Ammo,
+    Weapon(data::WeaponType),
+    Ammo(data::AmmoType),
     Throwable,
     Consumable,
 }
 
 impl InventoryItem {
     pub fn new_random(rng: &mut RandomSource) -> Self {
-        InventoryItem::iter().choose(rng).unwrap()
+        // TODO: bro this sucks lol
+        match rng.random_range(..InventoryItem::COUNT) {
+            0 => InventoryItem::Weapon(data::WeaponType::iter().choose(rng).unwrap()),
+            1 => InventoryItem::Ammo(data::AmmoType::iter().choose(rng).unwrap()),
+            2 => InventoryItem::Throwable,
+            3 => InventoryItem::Consumable,
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -54,7 +61,7 @@ impl Inventory {
 
     pub fn add_item(&mut self, item: InventoryItem) -> bool {
         match item {
-            InventoryItem::Weapon => match self.selected_weapon {
+            InventoryItem::Weapon(_) => match self.selected_weapon {
                 SelectedWeapon::Primary => {
                     self.primary = Some(weapon::Weapon::new(item));
                     true
@@ -64,7 +71,7 @@ impl Inventory {
                     true
                 }
             },
-            InventoryItem::Ammo | InventoryItem::Throwable | InventoryItem::Consumable => {
+            InventoryItem::Ammo(_) | InventoryItem::Throwable | InventoryItem::Consumable => {
                 *self.items.entry(item).or_default() += 1;
                 true
             }
