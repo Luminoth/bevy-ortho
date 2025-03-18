@@ -291,6 +291,39 @@ fn enter_game(
     }
 }
 
+// TODO: put this in the debug plugin
+fn save_scene(world: &World) {
+    use std::io::Write;
+
+    let scene = DynamicSceneBuilder::from_world(world)
+        .deny_resource::<Time<Real>>()
+        .deny_resource::<GameAssets>()
+        .deny_component::<bevy::render::camera::CameraRenderGraph>()
+        .deny_component::<bevy::render::camera::Exposure>()
+        .deny_component::<bevy::render::camera::CameraMainTextureUsages>()
+        .deny_component::<bevy::render::view::ColorGrading>()
+        .deny_component::<bevy::render::mesh::skinning::SkinnedMesh>()
+        .deny_component::<Mesh3d>()
+        .deny_component::<MeshMaterial3d<StandardMaterial>>()
+        .deny_component::<SceneRoot>()
+        .extract_entities(world.iter_entities().map(|entity| entity.id()))
+        .extract_resources()
+        .build();
+
+    let type_registry = world.resource::<AppTypeRegistry>();
+    let type_registry = type_registry.read();
+    let serialized_scene = scene.serialize(&type_registry).unwrap();
+
+    #[cfg(not(target_arch = "wasm32"))]
+    bevy::tasks::IoTaskPool::get()
+        .spawn(async move {
+            std::fs::File::create(format!("assets/saved_scene.scn.ron"))
+                .and_then(|mut file| file.write(serialized_scene.as_bytes()))
+                .unwrap();
+        })
+        .detach();
+}
+
 fn quit_game(mut exit: EventWriter<AppExit>) {
     exit.send(AppExit::Success);
 }
@@ -351,8 +384,13 @@ fn main() {
         .add_systems(OnEnter(AppState::InGame), enter_game)
         .add_systems(
             Update,
-            quit_game.run_if(in_state(AppState::InGame)).run_if(
-                bevy::input::common_conditions::input_just_pressed(KeyCode::Escape),
+            (
+                save_scene.run_if(in_state(AppState::InGame)).run_if(
+                    bevy::input::common_conditions::input_just_pressed(KeyCode::KeyF),
+                ),
+                quit_game.run_if(in_state(AppState::InGame)).run_if(
+                    bevy::input::common_conditions::input_just_pressed(KeyCode::Escape),
+                ),
             ),
         );
 

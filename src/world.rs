@@ -72,6 +72,7 @@ pub fn spawn_world(commands: &mut Commands, game_assets: &GameAssets, rotation: 
     commands.spawn((
         DirectionalLight {
             color: css::ORANGE_RED.into(),
+            illuminance: 10000.0,
             shadows_enabled: false,
             ..default()
         },
