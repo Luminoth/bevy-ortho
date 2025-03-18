@@ -2,8 +2,8 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use crate::{
-    GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS, RandomSource,
-    interactables, inventory,
+    GameAssets, GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS,
+    RandomSource, interactables, inventory,
 };
 
 #[derive(Debug, Component)]
@@ -52,8 +52,7 @@ fn animate_bobbers(time: Res<Time>, mut bobber_query: Query<(&Bobber, &mut Trans
 
 pub fn spawn_ground_loot(
     commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
+    game_assets: &GameAssets,
     random: &mut RandomSource,
     spawn_transform: &GlobalTransform,
 ) {
@@ -74,12 +73,7 @@ pub fn spawn_ground_loot(
 
     commands.with_children(|parent| {
         parent.spawn((
-            item.gen_model(meshes, materials),
-            // TODO: this is because our temp model is at 1.0 instead of 0.0
-            // and rotated 180 degrees around the Y axis
-            /*Transform::from_xyz(0.0, -1.0, 0.0)
-                .with_rotation(Quat::from_axis_angle(Vec3::Y, 180.0_f32.to_radians())),
-            SceneRoot(model),*/
+            item.gen_model(game_assets),
             Name::new("Model"),
             GroundLootModel,
         ));

@@ -1,7 +1,18 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
-use crate::{GameCollisionLayers, WORLD_INTERACT_LAYERS, spawn};
+use crate::{GameAssets, GameCollisionLayers, WORLD_INTERACT_LAYERS, spawn};
+
+pub const FLOOR_X_LENGTH: f32 = 30.0;
+pub const FLOOR_Z_LENGTH: f32 = 30.0;
+
+pub const BOX_X_LENGTH: f32 = 1.0;
+pub const BOX_Y_LENGTH: f32 = 1.0;
+pub const BOX_Z_LENGTH: f32 = 1.0;
+
+pub const CRATE_X_LENGTH: f32 = 2.0;
+pub const CRATE_Y_LENGTH: f32 = 1.0;
+pub const CRATE_Z_LENGTH: f32 = 1.0;
 
 #[derive(Debug)]
 pub struct WorldPlugin;
@@ -10,87 +21,49 @@ impl Plugin for WorldPlugin {
     fn build(&self, _app: &mut App) {}
 }
 
-fn spawn_floor(
-    commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-    rotation: Quat,
-) {
-    let x_len = 30.0;
-    let z_len = 30.0;
-
+fn spawn_floor(commands: &mut Commands, game_assets: &GameAssets, rotation: Quat) {
     let mut commands = commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(x_len, z_len))),
-        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
+        game_assets.gen_floor_mesh_components(),
         Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(rotation),
         Name::new("Floor"),
     ));
 
     commands.insert((
         RigidBody::Static,
-        Collider::cuboid(x_len, 0.1, z_len),
+        Collider::cuboid(FLOOR_X_LENGTH, 0.1, FLOOR_Z_LENGTH),
         CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
     ));
 }
 
-fn spawn_box(
-    commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-    color: Color,
-    position: Vec3,
-    rotation: Quat,
-) {
-    let x_len = 1.0;
-    let y_len = 1.0;
-    let z_len = 1.0;
-
+fn spawn_box(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, rotation: Quat) {
     let mut commands = commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(x_len, y_len, z_len))),
-        MeshMaterial3d(materials.add(color)),
+        game_assets.gen_box_meshh_components(),
         Transform::from_translation(position).with_rotation(rotation),
         Name::new("Box"),
     ));
 
     commands.insert((
         RigidBody::Static,
-        Collider::cuboid(x_len, y_len, z_len),
+        Collider::cuboid(BOX_X_LENGTH, BOX_Y_LENGTH, BOX_Z_LENGTH),
         CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
     ));
 }
 
-fn spawn_crate(
-    commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-    color: Color,
-    position: Vec3,
-    rotation: Quat,
-) {
-    let x_len = 2.0;
-    let y_len = 1.0;
-    let z_len = 1.0;
-
+fn spawn_crate(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, rotation: Quat) {
     let mut commands = commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(x_len, y_len, z_len))),
-        MeshMaterial3d(materials.add(color)),
+        game_assets.gen_crate_mesh_components(),
         Transform::from_translation(position).with_rotation(rotation),
         Name::new("Box"),
     ));
 
     commands.insert((
         RigidBody::Static,
-        Collider::cuboid(x_len, y_len, z_len),
+        Collider::cuboid(CRATE_X_LENGTH, CRATE_Y_LENGTH, CRATE_Z_LENGTH),
         CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
     ));
 }
 
-pub fn spawn_world(
-    commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-    rotation: Quat,
-) {
+pub fn spawn_world(commands: &mut Commands, game_assets: &GameAssets, rotation: Quat) {
     commands.insert_resource(AmbientLight {
         color: css::WHITE.into(),
         brightness: 80.0,
@@ -106,44 +79,12 @@ pub fn spawn_world(
         Name::new("Sun"),
     ));
 
-    spawn_floor(commands, meshes, materials, rotation);
+    spawn_floor(commands, game_assets, rotation);
 
-    // boxes
-    spawn_box(
-        commands,
-        meshes,
-        materials,
-        Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(5.0, 0.5, 5.0),
-        rotation,
-    );
-
-    spawn_box(
-        commands,
-        meshes,
-        materials,
-        Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(5.0, 0.5, -5.0),
-        rotation,
-    );
-
-    spawn_crate(
-        commands,
-        meshes,
-        materials,
-        Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(-5.0, 0.5, 5.0),
-        rotation,
-    );
-
-    spawn_crate(
-        commands,
-        meshes,
-        materials,
-        Color::srgb(0.8, 0.7, 0.6),
-        Vec3::new(-5.0, 0.5, -5.0),
-        rotation,
-    );
+    spawn_box(commands, game_assets, Vec3::new(5.0, 0.5, 5.0), rotation);
+    spawn_box(commands, game_assets, Vec3::new(5.0, 0.5, -5.0), rotation);
+    spawn_crate(commands, game_assets, Vec3::new(-5.0, 0.5, 5.0), rotation);
+    spawn_crate(commands, game_assets, Vec3::new(-5.0, 0.5, -5.0), rotation);
 
     commands.spawn((
         Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),

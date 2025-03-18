@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
-use bevy::{color::palettes::css, prelude::*};
+use bevy::prelude::*;
 
-use crate::{GameCollisionLayers, PROJECTILE_INTERACT_LAYERS, player};
+use crate::{GameAssets, GameCollisionLayers, PROJECTILE_INTERACT_LAYERS, player};
 
 #[derive(Debug, Component)]
 #[require(Transform)]
@@ -15,6 +15,7 @@ pub struct Bullet {
 #[derive(Debug, Component)]
 pub struct BulletModel;
 
+pub const RADIUS: f32 = 0.1;
 const MASS: f32 = 0.005;
 
 impl Bullet {
@@ -57,8 +58,7 @@ fn update_bullets(
 
 pub fn spawn_bullet(
     commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
+    game_assets: &GameAssets,
     spawn_position: Vec3,
     facing: Dir3,
     speed: f32,
@@ -72,7 +72,7 @@ pub fn spawn_bullet(
 
     commands.insert((
         RigidBody::Dynamic,
-        Collider::sphere(0.1),
+        Collider::sphere(RADIUS),
         CollisionLayers::new(GameCollisionLayers::Projectile, PROJECTILE_INTERACT_LAYERS),
         Mass(MASS),
         LockedAxes::ROTATION_LOCKED,
@@ -80,13 +80,7 @@ pub fn spawn_bullet(
 
     commands.with_children(|parent| {
         parent.spawn((
-            Mesh3d(meshes.add(Sphere::new(0.1))),
-            MeshMaterial3d(materials.add(Color::from(css::BLACK))),
-            // TODO: this is because our temp model is at 1.0 instead of 0.0
-            // and rotated 180 degrees around the Y axis
-            /*Transform::from_xyz(0.0, -1.0, 0.0)
-                .with_rotation(Quat::from_axis_angle(Vec3::Y, 180.0_f32.to_radians())),
-            SceneRoot(model),*/
+            game_assets.gen_bullet_mesh_components(),
             Name::new("Model"),
             BulletModel,
         ));

@@ -1,11 +1,17 @@
 use std::collections::HashMap;
 
 use avian3d::prelude::*;
-use bevy::{color::palettes::css, prelude::*};
+use bevy::prelude::*;
 use rand::prelude::*;
 use strum::{EnumCount, IntoEnumIterator};
 
-use crate::{RandomSource, data, weapon};
+use crate::{GameAssets, RandomSource, data, weapon};
+
+pub const WEAPON_RADIUS: f32 = 0.25;
+pub const WEAPON_LENGTH: f32 = 0.5;
+pub const AMMO_LENGTH: f32 = 0.5;
+pub const THROWABLE_RADIUS: f32 = 0.2;
+pub const CONSUMABLE_RADIUS: f32 = 0.2;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumCount)]
 pub enum InventoryItem {
@@ -31,35 +37,22 @@ impl InventoryItem {
         Collider::sphere(0.2);
 
         match self {
-            Self::Weapon(_) => Collider::capsule(0.25, 0.5),
-            Self::Ammo(_) => Collider::cuboid(0.5, 0.5, 0.5),
-            Self::Throwable => Collider::sphere(0.2),
-            Self::Consumable => Collider::sphere(0.2),
+            Self::Weapon(_) => Collider::capsule(WEAPON_RADIUS, WEAPON_LENGTH),
+            Self::Ammo(_) => Collider::cuboid(AMMO_LENGTH, AMMO_LENGTH, AMMO_LENGTH),
+            Self::Throwable => Collider::sphere(THROWABLE_RADIUS),
+            Self::Consumable => Collider::sphere(CONSUMABLE_RADIUS),
         }
     }
 
     pub fn gen_model(
         &self,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
+        game_assets: &GameAssets,
     ) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
         match self {
-            Self::Weapon(_) => (
-                Mesh3d(meshes.add(Capsule3d::new(0.25, 0.5))),
-                MeshMaterial3d(materials.add(Color::from(css::DARK_RED))),
-            ),
-            Self::Ammo(_) => (
-                Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
-                MeshMaterial3d(materials.add(Color::from(css::GREEN_YELLOW))),
-            ),
-            Self::Throwable => (
-                Mesh3d(meshes.add(Sphere::new(0.2))),
-                MeshMaterial3d(materials.add(Color::from(css::GREY))),
-            ),
-            Self::Consumable => (
-                Mesh3d(meshes.add(Sphere::new(0.2))),
-                MeshMaterial3d(materials.add(Color::from(css::WHITE))),
-            ),
+            Self::Weapon(_) => game_assets.gen_weapon_mesh_components(),
+            Self::Ammo(_) => game_assets.gen_ammo_mesh_components(),
+            Self::Throwable => game_assets.gen_throwable_mesh_components(),
+            Self::Consumable => game_assets.gen_consumable_mesh_components(),
         }
     }
 }

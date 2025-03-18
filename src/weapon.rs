@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{bullet, data, inventory};
+use crate::{GameAssets, bullet, data, inventory};
 
 #[derive(Debug)]
 pub struct Weapon {
@@ -58,14 +58,12 @@ impl Plugin for WeaponPlugin {
 fn fire_weapon_handler(
     _trigger: Trigger<FireWeaponEvent>,
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    game_assets: Res<GameAssets>,
 ) {
     info!("spawning bullet");
     bullet::spawn_bullet(
         &mut commands,
-        &mut meshes,
-        &mut materials,
+        &game_assets,
         Vec3::default(),
         Dir3::NEG_Z,
         0.25,

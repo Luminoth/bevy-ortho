@@ -5,15 +5,15 @@ use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
 use crate::{
-    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, data, input,
+    AppState, GameAssets, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, data, input,
     interactables, inventory,
 };
 
 #[derive(Debug, Resource)]
 #[allow(dead_code)]
-struct Animations {
-    animations: Vec<AnimationNodeIndex>,
-    graph: Handle<AnimationGraph>,
+pub struct Animations {
+    pub animations: Vec<AnimationNodeIndex>,
+    pub graph: Handle<AnimationGraph>,
 }
 
 #[derive(Debug, Component)]
@@ -26,10 +26,10 @@ pub struct LocalPlayer;
 pub struct PlayerModel;
 
 // TODO: move to player data
+pub const MODEL_PATH: &str = "human_1.glb";
 const MOVE_SPEED: f32 = 8.0;
 const HEIGHT: f32 = 2.0;
 const MASS: f32 = 75.0;
-const MODEL_PATH: &str = "human_1.glb";
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet)]
 pub struct PlayerSet;
@@ -154,22 +154,9 @@ fn handle_firing(
 
 pub fn spawn_player(
     commands: &mut Commands,
-    asset_server: &AssetServer,
-    graphs: &mut Assets<AnimationGraph>,
+    game_assets: &GameAssets,
     spawn_transform: &GlobalTransform,
 ) {
-    let (graph, node_indices) = AnimationGraph::from_clips([
-        asset_server.load(GltfAssetLabel::Animation(0).from_asset(MODEL_PATH))
-    ]);
-
-    let graph_handle = graphs.add(graph);
-    commands.insert_resource(Animations {
-        animations: node_indices,
-        graph: graph_handle,
-    });
-
-    let model = asset_server.load(GltfAssetLabel::Scene(0).from_asset(MODEL_PATH));
-
     let mut commands = commands.spawn((
         spawn_transform.compute_transform(),
         CollidingEntities::default(),
@@ -198,7 +185,7 @@ pub fn spawn_player(
             // and rotated 180 degrees around the Y axis
             Transform::from_xyz(0.0, -1.0, 0.0)
                 .with_rotation(Quat::from_axis_angle(Vec3::Y, 180.0_f32.to_radians())),
-            SceneRoot(model),
+            SceneRoot(game_assets.player_model.clone()),
             Name::new("Model"),
             PlayerModel,
         ));

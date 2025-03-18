@@ -14,6 +14,7 @@ mod world;
 
 use avian3d::prelude::*;
 use bevy::{
+    color::palettes::css,
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
@@ -67,6 +68,136 @@ pub const PROJECTILE_INTERACT_LAYERS: [GameCollisionLayers; 3] = [
 ];
 pub const INTERACTABLE_INTERACT_LAYERS: [GameCollisionLayers; 1] = [GameCollisionLayers::Player];
 
+#[derive(Debug, Default)]
+struct MeshMaterial {
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+}
+
+impl MeshMaterial {
+    fn gen_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        (
+            Mesh3d(self.mesh.clone()),
+            MeshMaterial3d(self.material.clone()),
+        )
+    }
+}
+
+#[derive(Debug, Default, Resource)]
+pub struct GameAssets {
+    pub player_model: Handle<Scene>,
+    pub player_animation_graph: Handle<AnimationGraph>,
+
+    weapon_mesh: MeshMaterial,
+    ammo_mesh: MeshMaterial,
+    throwable_mesh: MeshMaterial,
+    consumable_mesh: MeshMaterial,
+    bullet_mesh: MeshMaterial,
+
+    floor_mesh: MeshMaterial,
+    box_mesh: MeshMaterial,
+    crate_mesh: MeshMaterial,
+}
+
+impl GameAssets {
+    fn load(
+        &mut self,
+        commands: &mut Commands,
+        asset_server: &AssetServer,
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<StandardMaterial>,
+        animation_graphs: &mut Assets<AnimationGraph>,
+    ) {
+        let (graph, node_indices) = AnimationGraph::from_clips([
+            asset_server.load(GltfAssetLabel::Animation(0).from_asset(player::MODEL_PATH))
+        ]);
+
+        let graph_handle = animation_graphs.add(graph);
+        commands.insert_resource(player::Animations {
+            animations: node_indices,
+            graph: graph_handle,
+        });
+
+        self.player_model =
+            asset_server.load(GltfAssetLabel::Scene(0).from_asset(player::MODEL_PATH));
+
+        self.weapon_mesh.mesh = meshes.add(Capsule3d::new(
+            inventory::WEAPON_RADIUS,
+            inventory::WEAPON_LENGTH,
+        ));
+        self.weapon_mesh.material = materials.add(Color::from(css::DARK_RED));
+
+        self.ammo_mesh.mesh = meshes.add(Cuboid::new(
+            inventory::AMMO_LENGTH,
+            inventory::AMMO_LENGTH,
+            inventory::AMMO_LENGTH,
+        ));
+        self.ammo_mesh.material = materials.add(Color::from(css::GREEN_YELLOW));
+
+        self.throwable_mesh.mesh = meshes.add(Sphere::new(inventory::THROWABLE_RADIUS));
+        self.throwable_mesh.material = materials.add(Color::from(css::GREY));
+
+        self.consumable_mesh.mesh = meshes.add(Sphere::new(inventory::CONSUMABLE_RADIUS));
+        self.consumable_mesh.material = materials.add(Color::from(css::WHITE));
+
+        self.bullet_mesh.mesh = meshes.add(Sphere::new(bullet::RADIUS));
+        self.bullet_mesh.material = materials.add(Color::from(css::BLACK));
+
+        self.floor_mesh.mesh = meshes.add(
+            Plane3d::default()
+                .mesh()
+                .size(world::FLOOR_X_LENGTH, world::FLOOR_Z_LENGTH),
+        );
+        self.floor_mesh.material = materials.add(Color::srgb(0.3, 0.5, 0.3));
+
+        self.box_mesh.mesh = meshes.add(Cuboid::new(
+            world::BOX_X_LENGTH,
+            world::BOX_Y_LENGTH,
+            world::BOX_Z_LENGTH,
+        ));
+        self.box_mesh.material = materials.add(Color::srgb(0.8, 0.7, 0.6));
+
+        self.crate_mesh.mesh = meshes.add(Cuboid::new(
+            world::CRATE_X_LENGTH,
+            world::CRATE_Y_LENGTH,
+            world::CRATE_Z_LENGTH,
+        ));
+        self.crate_mesh.material = materials.add(Color::srgb(0.8, 0.7, 0.6));
+    }
+
+    pub fn gen_floor_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.floor_mesh.gen_components()
+    }
+
+    pub fn gen_box_meshh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.box_mesh.gen_components()
+    }
+
+    pub fn gen_crate_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.crate_mesh.gen_components()
+    }
+
+    pub fn gen_weapon_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.weapon_mesh.gen_components()
+    }
+
+    pub fn gen_ammo_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.ammo_mesh.gen_components()
+    }
+
+    pub fn gen_throwable_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.throwable_mesh.gen_components()
+    }
+
+    pub fn gen_consumable_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.consumable_mesh.gen_components()
+    }
+
+    pub fn gen_bullet_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.bullet_mesh.gen_components()
+    }
+}
+
 pub fn show_cursor(window: &mut Window, show: bool) {
     window.cursor_options.grab_mode = if show {
         CursorGrabMode::None
@@ -99,20 +230,30 @@ fn wait_for_window(
 
 fn load_assets(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut animation_graphs: ResMut<Assets<AnimationGraph>>,
     mut app_state: ResMut<NextState<AppState>>,
 ) {
-    info!("load assets");
+    let mut assets = GameAssets::default();
+    assets.load(
+        &mut commands,
+        &asset_server,
+        &mut meshes,
+        &mut materials,
+        &mut animation_graphs,
+    );
 
     camera::spawn_main_camera(&mut commands, VIEWPORT_HEIGHT, CAMERA_OFFSET);
 
     world::spawn_world(
         &mut commands,
-        &mut meshes,
-        &mut materials,
+        &assets,
         Quat::from_axis_angle(Vec3::Y, WORLD_ROTATION),
     );
+
+    commands.insert_resource(assets);
 
     app_state.set(AppState::InGame);
 }
@@ -122,10 +263,7 @@ fn load_assets(
 #[allow(clippy::too_many_arguments)]
 fn enter_game(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut graphs: ResMut<Assets<AnimationGraph>>,
+    game_assets: Res<GameAssets>,
     mut random: ResMut<RandomSource>,
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
     player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
@@ -146,16 +284,10 @@ fn enter_game(
 
     // player
     let player_spawn = player_spawn_query.single();
-    player::spawn_player(&mut commands, &asset_server, &mut graphs, player_spawn);
+    player::spawn_player(&mut commands, &game_assets, player_spawn);
 
     for loot_spawn in loot_spawn_query.iter() {
-        loot::spawn_ground_loot(
-            &mut commands,
-            &mut meshes,
-            &mut materials,
-            &mut random,
-            loot_spawn,
-        );
+        loot::spawn_ground_loot(&mut commands, &game_assets, &mut random, loot_spawn);
     }
 }
 
