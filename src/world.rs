@@ -103,14 +103,35 @@ pub fn spawn_world(commands: &mut Commands, game_assets: &GameAssets, rotation: 
     spawn_wall(
         commands,
         game_assets,
-        Vec3::new(0.0, 0.5, -10.0),
+        Vec3::new(0.0, WALL_Y_LENGTH * 0.5, -10.0),
         Quat::default(),
     );
 
-    spawn_box(commands, game_assets, Vec3::new(5.0, 0.5, 5.0), rotation);
-    spawn_box(commands, game_assets, Vec3::new(5.0, 0.5, -5.0), rotation);
-    spawn_crate(commands, game_assets, Vec3::new(-5.0, 0.5, 5.0), rotation);
-    spawn_crate(commands, game_assets, Vec3::new(-5.0, 0.5, -5.0), rotation);
+    spawn_box(
+        commands,
+        game_assets,
+        Vec3::new(5.0, BOX_Y_LENGTH * 0.5, 5.0),
+        rotation,
+    );
+    spawn_box(
+        commands,
+        game_assets,
+        Vec3::new(5.0, BOX_Y_LENGTH * 0.5, -5.0),
+        rotation,
+    );
+
+    spawn_crate(
+        commands,
+        game_assets,
+        Vec3::new(-5.0, CRATE_Y_LENGTH * 0.5, 5.0),
+        rotation,
+    );
+    spawn_crate(
+        commands,
+        game_assets,
+        Vec3::new(-5.0, CRATE_Y_LENGTH, -5.0),
+        rotation,
+    );
 
     commands.spawn((
         Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),

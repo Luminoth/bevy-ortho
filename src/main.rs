@@ -329,7 +329,7 @@ fn save_scene(world: &World) {
     #[cfg(not(target_arch = "wasm32"))]
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
-            std::fs::File::create(format!("assets/saved_scene.scn.ron"))
+            std::fs::File::create("assets/saved_scene.scn.ron")
                 .and_then(|mut file| file.write(serialized_scene.as_bytes()))
                 .unwrap();
         })

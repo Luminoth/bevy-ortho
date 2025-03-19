@@ -33,10 +33,12 @@ pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, update_bullets.after(player::PlayerSet));
+        app.add_systems(Update, handle_collisions)
+            .add_systems(FixedUpdate, update_bullets.after(player::PlayerSet));
     }
 }
 
+// TODO: this ALL wrong, we should be setting an initial velocity and let the physics engine do the rest
 fn update_bullets(
     mut commands: Commands,
     time: Res<Time<Fixed>>,
@@ -52,7 +54,21 @@ fn update_bullets(
         let distance = bullet.speed * time.elapsed_secs();
         transform.translation += direction * distance;
 
+        info!("translation: {}", transform.translation);
+
         bullet.distance_traveled += distance;
+    }
+}
+
+fn handle_collisions(
+    mut commands: Commands,
+    bullet_query: Query<(Entity, &CollidingEntities), With<Bullet>>,
+) {
+    for (entity, colliding_entities) in bullet_query.iter() {
+        for colliding_entity in colliding_entities.iter() {
+            info!("bullet {} collides with {}", entity, colliding_entity);
+            commands.entity(entity).despawn_recursive();
+        }
     }
 }
 
@@ -76,6 +92,7 @@ pub fn spawn_bullet(
         CollisionLayers::new(GameCollisionLayers::Projectile, PROJECTILE_INTERACT_LAYERS),
         Mass(MASS),
         LockedAxes::ROTATION_LOCKED,
+        //SweptCcd::default(),
     ));
 
     commands.with_children(|parent| {

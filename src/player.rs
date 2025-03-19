@@ -149,7 +149,7 @@ fn handle_firing(
 
     let weapon = inventory.get_selected_weapon_mut();
     if let Some(weapon) = weapon {
-        let mut origin = player_query.single().clone();
+        let mut origin = *player_query.single();
         origin.translation.y = 1.0;
 
         weapon.fire(&mut commands, &datum, &time, &origin);
