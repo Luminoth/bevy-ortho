@@ -141,7 +141,7 @@ fn handle_firing(
     mut inventory: ResMut<inventory::Inventory>,
     datum: Res<data::WeaponDataSource>,
     time: Res<Time>,
-    player_query: Query<&Transform, With<LocalPlayer>>,
+    player_query: Query<&GlobalTransform, With<LocalPlayer>>,
 ) {
     if !input_state.firing {
         return;
@@ -149,8 +149,8 @@ fn handle_firing(
 
     let weapon = inventory.get_selected_weapon_mut();
     if let Some(weapon) = weapon {
-        let mut origin = *player_query.single();
-        origin.translation.y = 1.0;
+        let mut origin = player_query.single().compute_transform();
+        origin.translation.y = 1.5;
 
         weapon.fire(&mut commands, &datum, &time, &origin);
     }

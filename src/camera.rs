@@ -21,12 +21,12 @@ impl Plugin for OrthoCameraPlugin {
 
 fn update_camera(
     mut camera_query: Query<(&mut Transform, &MainCamera)>,
-    player_query: Query<&Transform, (With<player::LocalPlayer>, Without<MainCamera>)>,
+    player_query: Query<&GlobalTransform, (With<player::LocalPlayer>, Without<MainCamera>)>,
 ) {
     if let Ok((mut camera_transform, camera)) = camera_query.get_single_mut() {
         if let Ok(player_transform) = player_query.get_single() {
             // TODO: this should have a deadzone and all that to feel better
-            camera_transform.translation = player_transform.translation + camera.0;
+            camera_transform.translation = player_transform.translation() + camera.0;
         }
     }
 }
