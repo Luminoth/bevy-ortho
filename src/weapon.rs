@@ -87,7 +87,19 @@ fn fire_weapon_handler(
         // TODO: these from weapon / ammo data ?
         200.0,
         30.0,
-    );
+    )
+    .observe(on_bullet_fizzle)
+    .observe(on_bullet_collision);
+}
 
-    // TODO: observe end of projectile life
+fn on_bullet_fizzle(trigger: Trigger<projectile::ProjectileFizzle>) {
+    info!("bullet fizzle for {}", trigger.entity());
+}
+
+fn on_bullet_collision(trigger: Trigger<projectile::ProjectileCollision>) {
+    info!(
+        "bullet collision for {}: {}",
+        trigger.entity(),
+        trigger.target
+    );
 }

@@ -26,6 +26,14 @@ impl Projectile {
 #[derive(Debug, Component)]
 pub struct ProjectileModel;
 
+#[derive(Debug, Event)]
+pub struct ProjectileFizzle;
+
+#[derive(Debug, Event)]
+pub struct ProjectileCollision {
+    pub target: Entity,
+}
+
 pub const BULLET_RADIUS: f32 = 0.1;
 const MASS: f32 = 0.005;
 
@@ -49,7 +57,7 @@ fn check_projectile_despawn(
     for (entity, projectile, transform) in projectile_query.iter() {
         if projectile.origin.distance(transform.translation) > projectile.max_distance {
             debug!("despawning stray projectile");
-            warn!("TODO: signal projectile end of life");
+            commands.trigger_targets(ProjectileFizzle, entity);
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -73,15 +81,20 @@ fn handle_collisions(
     for (entity, colliding_entities) in projectile_query.iter() {
         for colliding_entity in colliding_entities.iter() {
             debug!("projectile {} collides with {}", entity, colliding_entity);
-            warn!("TODO: signal projectile collision");
+            commands.trigger_targets(
+                ProjectileCollision {
+                    target: *colliding_entity,
+                },
+                entity,
+            );
             commands.entity(entity).despawn_recursive();
         }
     }
 }
 
 #[allow(clippy::too_many_arguments)]
-fn spawn_projectile(
-    commands: &mut Commands,
+fn spawn_projectile<'a>(
+    commands: &'a mut Commands,
     model: (Mesh3d, MeshMaterial3d<StandardMaterial>),
     name: impl Into<Cow<'static, str>>,
     radius: f32,
@@ -90,7 +103,7 @@ fn spawn_projectile(
     direction: Dir3,
     speed: f32,
     max_distance: f32,
-) {
+) -> EntityCommands<'a> {
     let mut commands = commands.spawn((
         Transform::from_translation(origin).looking_to(direction, Vec3::Y),
         Visibility::default(),
@@ -113,18 +126,18 @@ fn spawn_projectile(
         parent.spawn((model, Name::new("Model"), ProjectileModel));
     });
 
-    // TODO: this would return something for observing end of life
+    commands
 }
 
-pub fn spawn_bullet(
-    commands: &mut Commands,
+pub fn spawn_bullet<'a>(
+    commands: &'a mut Commands,
     game_assets: &GameAssets,
     owner: Entity,
     origin: Vec3,
     direction: Dir3,
     speed: f32,
     max_distance: f32,
-) {
+) -> EntityCommands<'a> {
     spawn_projectile(
         commands,
         game_assets.gen_bullet_mesh_components(),
@@ -135,5 +148,5 @@ pub fn spawn_bullet(
         direction,
         speed,
         max_distance,
-    );
+    )
 }
