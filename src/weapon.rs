@@ -29,14 +29,19 @@ impl Weapon {
         self.last_fire_ts + data.fire_rate <= time.elapsed_secs()
     }
 
-    pub fn fire(&mut self, commands: &mut Commands, datum: &data::WeaponDatum, time: &Time) {
+    pub fn fire(
+        &mut self,
+        commands: &mut Commands,
+        datum: &data::WeaponDatum,
+        time: &Time,
+        origin: &Transform,
+    ) {
         if !self.can_fire(datum, time) {
             return;
         }
 
         // TODO:
-        info!("firing weapon");
-        commands.trigger(FireWeaponEvent);
+        commands.trigger(FireWeaponEvent::from_transform(origin));
         self.last_fire_ts = time.elapsed_secs();
 
         // TODO: consume ammo
@@ -44,7 +49,19 @@ impl Weapon {
 }
 
 #[derive(Event)]
-struct FireWeaponEvent;
+struct FireWeaponEvent {
+    origin: Vec3,
+    direction: Dir3,
+}
+
+impl FireWeaponEvent {
+    fn from_transform(transform: &Transform) -> Self {
+        Self {
+            origin: transform.translation,
+            direction: transform.forward(),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct WeaponPlugin;
@@ -56,17 +73,17 @@ impl Plugin for WeaponPlugin {
 }
 
 fn fire_weapon_handler(
-    _trigger: Trigger<FireWeaponEvent>,
+    trigger: Trigger<FireWeaponEvent>,
     mut commands: Commands,
     game_assets: Res<GameAssets>,
 ) {
-    info!("spawning bullet");
     bullet::spawn_bullet(
         &mut commands,
         &game_assets,
-        Vec3::default(),
-        Dir3::NEG_Z,
+        trigger.origin,
+        trigger.direction,
+        // TODO: these from weapon / ammo data ?
         0.25,
-        10.0,
+        25.0,
     );
 }

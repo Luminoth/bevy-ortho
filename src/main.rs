@@ -95,6 +95,7 @@ pub struct GameAssets {
     bullet_mesh: MeshMaterial,
 
     floor_mesh: MeshMaterial,
+    wall_mesh: MeshMaterial,
     box_mesh: MeshMaterial,
     crate_mesh: MeshMaterial,
 }
@@ -150,6 +151,13 @@ impl GameAssets {
         );
         self.floor_mesh.material = materials.add(Color::srgb(0.3, 0.5, 0.3));
 
+        self.wall_mesh.mesh = meshes.add(Cuboid::new(
+            world::WALL_X_LENGTH,
+            world::WALL_Y_LENGTH,
+            world::WALL_Z_LENGTH,
+        ));
+        self.wall_mesh.material = materials.add(Color::srgb(0.4, 0.7, 0.3));
+
         self.box_mesh.mesh = meshes.add(Cuboid::new(
             world::BOX_X_LENGTH,
             world::BOX_Y_LENGTH,
@@ -169,7 +177,11 @@ impl GameAssets {
         self.floor_mesh.gen_components()
     }
 
-    pub fn gen_box_meshh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+    pub fn gen_wall_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
+        self.wall_mesh.gen_components()
+    }
+
+    pub fn gen_box_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
         self.box_mesh.gen_components()
     }
 

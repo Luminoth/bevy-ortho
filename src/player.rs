@@ -141,6 +141,7 @@ fn handle_firing(
     mut inventory: ResMut<inventory::Inventory>,
     datum: Res<data::WeaponDataSource>,
     time: Res<Time>,
+    player_query: Query<&Transform, With<LocalPlayer>>,
 ) {
     if !input_state.firing {
         return;
@@ -148,7 +149,10 @@ fn handle_firing(
 
     let weapon = inventory.get_selected_weapon_mut();
     if let Some(weapon) = weapon {
-        weapon.fire(&mut commands, &datum, &time);
+        let mut origin = player_query.single().clone();
+        origin.translation.y = 1.0;
+
+        weapon.fire(&mut commands, &datum, &time, &origin);
     }
 }
 

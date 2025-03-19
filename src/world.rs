@@ -6,6 +6,10 @@ use crate::{GameAssets, GameCollisionLayers, WORLD_INTERACT_LAYERS, spawn};
 pub const FLOOR_X_LENGTH: f32 = 30.0;
 pub const FLOOR_Z_LENGTH: f32 = 30.0;
 
+pub const WALL_X_LENGTH: f32 = 2.0;
+pub const WALL_Y_LENGTH: f32 = 2.0;
+pub const WALL_Z_LENGTH: f32 = 1.0;
+
 pub const BOX_X_LENGTH: f32 = 1.0;
 pub const BOX_Y_LENGTH: f32 = 1.0;
 pub const BOX_Z_LENGTH: f32 = 1.0;
@@ -35,9 +39,23 @@ fn spawn_floor(commands: &mut Commands, game_assets: &GameAssets, rotation: Quat
     ));
 }
 
+fn spawn_wall(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, rotation: Quat) {
+    let mut commands = commands.spawn((
+        game_assets.gen_wall_mesh_components(),
+        Transform::from_translation(position).with_rotation(rotation),
+        Name::new("Wall"),
+    ));
+
+    commands.insert((
+        RigidBody::Static,
+        Collider::cuboid(WALL_X_LENGTH, WALL_Y_LENGTH, WALL_Z_LENGTH),
+        CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
+    ));
+}
+
 fn spawn_box(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, rotation: Quat) {
     let mut commands = commands.spawn((
-        game_assets.gen_box_meshh_components(),
+        game_assets.gen_box_mesh_components(),
         Transform::from_translation(position).with_rotation(rotation),
         Name::new("Box"),
     ));
@@ -81,6 +99,13 @@ pub fn spawn_world(commands: &mut Commands, game_assets: &GameAssets, rotation: 
     ));
 
     spawn_floor(commands, game_assets, rotation);
+
+    spawn_wall(
+        commands,
+        game_assets,
+        Vec3::new(0.0, 0.5, -10.0),
+        Quat::default(),
+    );
 
     spawn_box(commands, game_assets, Vec3::new(5.0, 0.5, 5.0), rotation);
     spawn_box(commands, game_assets, Vec3::new(5.0, 0.5, -5.0), rotation);
