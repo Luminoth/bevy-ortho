@@ -281,8 +281,6 @@ fn enter_game(
     player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
     loot_spawn_query: Query<&GlobalTransform, With<spawn::GroundLootSpawn>>,
 ) {
-    info!("enter game");
-
     let mut window = window_query.single_mut();
     show_cursor(&mut window, false);
 

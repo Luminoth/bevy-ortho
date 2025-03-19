@@ -32,6 +32,7 @@ impl Weapon {
     pub fn fire(
         &mut self,
         commands: &mut Commands,
+        owner: Entity,
         datum: &data::WeaponDatum,
         time: &Time,
         origin: &Transform,
@@ -41,7 +42,7 @@ impl Weapon {
         }
 
         // TODO:
-        commands.trigger(FireWeaponEvent::from_transform(origin));
+        commands.trigger(FireWeaponEvent::from_transform(owner, origin));
         self.last_fire_ts = time.elapsed_secs();
 
         // TODO: consume ammo
@@ -50,13 +51,15 @@ impl Weapon {
 
 #[derive(Event)]
 struct FireWeaponEvent {
+    owner: Entity,
     origin: Vec3,
     direction: Dir3,
 }
 
 impl FireWeaponEvent {
-    fn from_transform(transform: &Transform) -> Self {
+    fn from_transform(owner: Entity, transform: &Transform) -> Self {
         Self {
+            owner,
             origin: transform.translation,
             direction: transform.forward(),
         }
@@ -80,10 +83,11 @@ fn fire_weapon_handler(
     bullet::spawn_bullet(
         &mut commands,
         &game_assets,
+        trigger.owner,
         trigger.origin,
         trigger.direction,
         // TODO: these from weapon / ammo data ?
-        0.25,
-        25.0,
+        200.0,
+        30.0,
     );
 }

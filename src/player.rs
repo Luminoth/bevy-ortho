@@ -41,15 +41,13 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                update_player,
-                (listen_interact, listen_weapon_select, handle_firing),
-            )
+            (update_player, (listen_weapon_select, handle_firing))
                 .chain()
                 .after(input::InputSet)
                 .run_if(in_state(AppState::InGame))
                 .in_set(PlayerSet),
-        );
+        )
+        .add_systems(PostProcessCollisions, listen_interact);
     }
 }
 
@@ -141,7 +139,7 @@ fn handle_firing(
     mut inventory: ResMut<inventory::Inventory>,
     datum: Res<data::WeaponDataSource>,
     time: Res<Time>,
-    player_query: Query<&GlobalTransform, With<LocalPlayer>>,
+    player_query: Query<(Entity, &GlobalTransform), With<LocalPlayer>>,
 ) {
     if !input_state.firing {
         return;
@@ -149,10 +147,14 @@ fn handle_firing(
 
     let weapon = inventory.get_selected_weapon_mut();
     if let Some(weapon) = weapon {
-        let mut origin = player_query.single().compute_transform();
-        origin.translation.y = 1.5;
+        let (entity, global_transform) = player_query.single();
 
-        weapon.fire(&mut commands, &datum, &time, &origin);
+        let mut origin = global_transform.compute_transform();
+        origin.translation.y = 1.5;
+        // TODO: we might want to spawn this in front of the player as well
+        // (currently it spawns inside the player and we filter the collision)
+
+        weapon.fire(&mut commands, entity, &datum, &time, &origin);
     }
 }
 
@@ -163,6 +165,7 @@ pub fn spawn_player(
 ) {
     let mut commands = commands.spawn((
         spawn_transform.compute_transform(),
+        Visibility::default(),
         CollidingEntities::default(),
         Name::new("Player"),
         Player,

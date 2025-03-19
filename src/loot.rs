@@ -60,6 +60,7 @@ pub fn spawn_ground_loot(
 
     let mut commands = commands.spawn((
         spawn_transform.compute_transform(),
+        Visibility::default(),
         Name::new("Ground Loot"),
         GroundLoot(item),
     ));
