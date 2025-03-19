@@ -98,4 +98,22 @@ pub fn spawn_world(commands: &mut Commands, game_assets: &GameAssets, rotation: 
         Name::new("Ground Loot Spawn"),
         spawn::GroundLootSpawn,
     ));
+
+    commands.spawn((
+        Transform::from_translation(Vec3::new(3.5, 1.0, -2.0)),
+        Name::new("Ground Loot Spawn"),
+        spawn::GroundLootSpawn,
+    ));
+
+    commands.spawn((
+        Transform::from_translation(Vec3::new(3.5, 1.0, 2.0)),
+        Name::new("Ground Loot Spawn"),
+        spawn::GroundLootSpawn,
+    ));
+
+    commands.spawn((
+        Transform::from_translation(Vec3::new(-3.5, 1.0, 2.0)),
+        Name::new("Ground Loot Spawn"),
+        spawn::GroundLootSpawn,
+    ));
 }
