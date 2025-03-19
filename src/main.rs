@@ -1,4 +1,3 @@
-mod bullet;
 mod camera;
 mod cursor;
 mod data;
@@ -8,6 +7,7 @@ mod interactables;
 mod inventory;
 mod loot;
 mod player;
+mod projectile;
 mod spawn;
 mod weapon;
 mod world;
@@ -141,7 +141,7 @@ impl GameAssets {
         self.consumable_mesh.mesh = meshes.add(Sphere::new(inventory::CONSUMABLE_RADIUS));
         self.consumable_mesh.material = materials.add(Color::from(css::WHITE));
 
-        self.bullet_mesh.mesh = meshes.add(Sphere::new(bullet::RADIUS));
+        self.bullet_mesh.mesh = meshes.add(Sphere::new(projectile::BULLET_RADIUS));
         self.bullet_mesh.material = materials.add(Color::from(css::BLACK));
 
         self.floor_mesh.mesh = meshes.add(
@@ -384,7 +384,7 @@ fn main() {
             loot::GroundLootPlugin,
             player::PlayerPlugin,
             weapon::WeaponPlugin,
-            bullet::BulletPlugin,
+            projectile::ProjectilePlugin,
             interactables::InteractablesPlugin,
             debug::DebugPlugin,
         ))

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{GameAssets, bullet, data, inventory};
+use crate::{GameAssets, data, inventory, projectile};
 
 #[derive(Debug)]
 pub struct Weapon {
@@ -77,7 +77,8 @@ fn fire_weapon_handler(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
 ) {
-    bullet::spawn_bullet(
+    // TODO: weapon determines the projectile to spawn here
+    projectile::spawn_bullet(
         &mut commands,
         &game_assets,
         trigger.owner,
@@ -87,4 +88,6 @@ fn fire_weapon_handler(
         200.0,
         30.0,
     );
+
+    // TODO: observe end of projectile life
 }
