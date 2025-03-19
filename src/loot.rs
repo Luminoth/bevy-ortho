@@ -2,8 +2,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use crate::{
-    GameAssets, GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, LOOT_INTERACT_LAYERS,
-    RandomSource, interactables, inventory,
+    GameAssets, GameCollisionLayers, LOOT_INTERACT_LAYERS, RandomSource, interactables, inventory,
 };
 
 #[derive(Debug, Component)]
@@ -79,16 +78,6 @@ pub fn spawn_ground_loot(
             GroundLootModel,
         ));
 
-        // TODO: move to interactables module
-        parent.spawn((
-            Collider::sphere(0.5),
-            CollisionLayers::new(
-                GameCollisionLayers::Interactable,
-                INTERACTABLE_INTERACT_LAYERS,
-            ),
-            Sensor,
-            Name::new("Interactable"),
-            interactables::Interactable::GroundLoot,
-        ));
+        interactables::spawn_interactable(parent, interactables::InteractableType::GroundLoot);
     });
 }

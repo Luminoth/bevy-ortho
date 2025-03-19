@@ -4,7 +4,6 @@ use crate::{GameAssets, bullet, data, inventory};
 
 #[derive(Debug)]
 pub struct Weapon {
-    #[allow(dead_code)]
     pub r#type: data::WeaponType,
     pub last_fire_ts: f32,
 }
@@ -20,12 +19,11 @@ impl Weapon {
         }
     }
 
-    #[allow(dead_code)]
     pub fn can_fire(&self, datum: &data::WeaponDatum, time: &Time) -> bool {
-        // TODO: handle semi-auto
-        // TODO: verify ammo
+        info!("TODO: verify ammo available");
 
         let data = datum.get(&self.r#type).unwrap();
+        info!("TODO: handle fire mode {}", data.fire_mode);
         self.last_fire_ts + data.fire_rate <= time.elapsed_secs()
     }
 
@@ -41,11 +39,10 @@ impl Weapon {
             return;
         }
 
-        // TODO:
         commands.trigger(FireWeaponEvent::from_transform(owner, origin));
         self.last_fire_ts = time.elapsed_secs();
 
-        // TODO: consume ammo
+        info!("TODO: consume ammo");
     }
 }
 

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display, strum::EnumIter)]
 pub enum AmmoType {
     Light,
 }
@@ -28,12 +28,12 @@ fn register_ammo_data(commands: &mut Commands) {
     )])));
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display, strum::EnumIter)]
 pub enum WeaponType {
     Pistol,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display)]
 pub enum WeaponFireMode {
     SemiAuto,
     Burst(u8),

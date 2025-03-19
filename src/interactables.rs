@@ -1,16 +1,17 @@
 use std::ops::Deref;
 
+use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{AppState, inventory, loot, player};
+use crate::{AppState, GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, inventory, loot, player};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Component)]
-pub enum Interactable {
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Component, strum::Display)]
+pub enum InteractableType {
     GroundLoot,
 }
 
 #[derive(Debug, Event)]
-pub struct InteractEvent(pub Entity, pub Interactable);
+pub struct InteractEvent(pub Entity, pub InteractableType);
 
 #[derive(Debug)]
 pub struct InteractablesPlugin;
@@ -39,7 +40,7 @@ fn listen_interact(
 
     let evt = evr_interact.read().next().unwrap();
     match evt.1 {
-        Interactable::GroundLoot => {
+        InteractableType::GroundLoot => {
             let loot = ground_loot_query.get(evt.0).unwrap();
 
             if inventory.add_item(*loot.deref()) {
@@ -50,4 +51,17 @@ fn listen_interact(
     }
 
     evr_interact.clear();
+}
+
+pub fn spawn_interactable(parent: &mut ChildBuilder, r#type: InteractableType) {
+    parent.spawn((
+        Collider::sphere(0.5),
+        CollisionLayers::new(
+            GameCollisionLayers::Interactable,
+            INTERACTABLE_INTERACT_LAYERS,
+        ),
+        Sensor,
+        Name::new("Interactable"),
+        r#type,
+    ));
 }

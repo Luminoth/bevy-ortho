@@ -25,13 +25,14 @@ fn update_camera(
 ) {
     if let Ok((mut camera_transform, camera)) = camera_query.get_single_mut() {
         if let Ok(player_transform) = player_query.get_single() {
-            // TODO: this should have a deadzone and all that to feel better
             camera_transform.translation = player_transform.translation() + camera.0;
         }
     }
 }
 
 pub fn spawn_main_camera(commands: &mut Commands, viewport_height: f32, offset: Vec3) {
+    warn!("TODO: main camera should have a deadzone and all that to feel better");
+
     commands.spawn((
         Camera3d::default(),
         Projection::from(OrthographicProjection {

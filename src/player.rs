@@ -87,7 +87,7 @@ fn listen_interact(
     mut evr_interact: EventReader<input::InteractInputEvent>,
     mut evw_interact: EventWriter<interactables::InteractEvent>,
     player_query: Query<&CollidingEntities, With<LocalPlayer>>,
-    interactable_query: Query<(&interactables::Interactable, &Parent)>,
+    interactable_query: Query<(&interactables::InteractableType, &Parent)>,
 ) {
     if evr_interact.is_empty() {
         return;
@@ -115,17 +115,18 @@ fn listen_weapon_select(
     mut evr_toggle_weapon: EventReader<input::ToggleWeaponInputEvent>,
     mut evr_select_weapon: EventReader<input::SelectWeaponInputEvent>,
 ) {
+    // TODO: we can't select / toggle empty weapon slots
     if inventory.has_weapon() {
         if evr_select_weapon.is_empty() {
             if !evr_toggle_weapon.is_empty() {
-                // TODO: this takes time
-                inventory.toggle_weapon();
+                warn!("TODO: toggle weapon takes time");
+                inventory.toggle_selected_weapon();
             }
         } else {
             let selected = evr_select_weapon.read().next().unwrap();
 
-            // TODO: this takes time
-            inventory.select_weapon(*selected.deref());
+            warn!("TODO: select weapon takes time");
+            inventory.set_selected_weapon(*selected.deref());
         }
     }
 
@@ -145,7 +146,7 @@ fn handle_firing(
         return;
     }
 
-    let weapon = inventory.get_selected_weapon_mut();
+    let weapon = inventory.get_selected_weapon_item_mut();
     if let Some(weapon) = weapon {
         let (entity, global_transform) = player_query.single();
 

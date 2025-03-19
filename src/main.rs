@@ -246,7 +246,6 @@ fn load_assets(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut animation_graphs: ResMut<Assets<AnimationGraph>>,
-    mut app_state: ResMut<NextState<AppState>>,
 ) {
     let mut assets = GameAssets::default();
     assets.load(
@@ -257,48 +256,56 @@ fn load_assets(
         &mut animation_graphs,
     );
 
-    camera::spawn_main_camera(&mut commands, VIEWPORT_HEIGHT, CAMERA_OFFSET);
+    // these would be part of the scene asset
+    {
+        camera::spawn_main_camera(&mut commands, VIEWPORT_HEIGHT, CAMERA_OFFSET);
 
-    world::spawn_world(
-        &mut commands,
-        &assets,
-        Quat::from_axis_angle(Vec3::Y, WORLD_ROTATION),
-    );
+        world::spawn_world(
+            &mut commands,
+            &assets,
+            Quat::from_axis_angle(Vec3::Y, WORLD_ROTATION),
+        );
+    }
 
     commands.insert_resource(assets);
+}
+
+fn wait_for_assets(mut app_state: ResMut<NextState<AppState>>) {
+    warn!("TODO: wait for assets to load");
 
     app_state.set(AppState::InGame);
 }
 
-// TODO: this could be split up like
-// spawn_player/s, spawn_loot, init_ui, etc
-#[allow(clippy::too_many_arguments)]
-fn enter_game(
-    mut commands: Commands,
-    game_assets: Res<GameAssets>,
-    mut random: ResMut<RandomSource>,
-    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
-    player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
-    loot_spawn_query: Query<&GlobalTransform, With<spawn::GroundLootSpawn>>,
-) {
+fn init_ui(mut commands: Commands, mut window_query: Query<&mut Window, With<PrimaryWindow>>) {
     let mut window = window_query.single_mut();
     show_cursor(&mut window, false);
 
-    // UI
     cursor::spawn_cursor(
         &mut commands,
         Vec2::new(window.width() * 0.5, window.height() * 0.5),
     );
+}
 
-    commands.init_resource::<inventory::Inventory>();
-
-    // player
-    let player_spawn = player_spawn_query.single();
-    player::spawn_player(&mut commands, &game_assets, player_spawn);
-
+fn spawn_loot(
+    mut commands: Commands,
+    game_assets: Res<GameAssets>,
+    mut random: ResMut<RandomSource>,
+    loot_spawn_query: Query<&GlobalTransform, With<spawn::GroundLootSpawn>>,
+) {
     for loot_spawn in loot_spawn_query.iter() {
         loot::spawn_ground_loot(&mut commands, &game_assets, &mut random, loot_spawn);
     }
+}
+
+fn spawn_player(
+    mut commands: Commands,
+    game_assets: Res<GameAssets>,
+    player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
+) {
+    commands.init_resource::<inventory::Inventory>();
+
+    let player_spawn = player_spawn_query.single();
+    player::spawn_player(&mut commands, &game_assets, player_spawn);
 }
 
 // TODO: put this in the debug plugin
@@ -389,12 +396,16 @@ fn main() {
         .init_state::<AppState>();
 
     app.add_systems(Startup, setup)
-        .add_systems(Update, wait_for_window.run_if(in_state(AppState::Init)))
         .add_systems(OnEnter(AppState::LoadAssets), load_assets)
-        .add_systems(OnEnter(AppState::InGame), enter_game)
+        .add_systems(
+            OnEnter(AppState::InGame),
+            (init_ui, spawn_loot, spawn_player),
+        )
         .add_systems(
             Update,
             (
+                wait_for_window.run_if(in_state(AppState::Init)),
+                wait_for_assets.run_if(in_state(AppState::LoadAssets)),
                 save_scene.run_if(in_state(AppState::InGame)).run_if(
                     bevy::input::common_conditions::input_just_pressed(KeyCode::KeyF),
                 ),

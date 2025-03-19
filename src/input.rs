@@ -29,7 +29,7 @@ pub struct InteractInputEvent;
 pub struct ToggleWeaponInputEvent;
 
 #[derive(Debug, Deref, Event)]
-pub struct SelectWeaponInputEvent(inventory::SelectedWeapon);
+pub struct SelectWeaponInputEvent(inventory::WeaponSlot);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet)]
 pub struct InputSet;
@@ -129,11 +129,11 @@ fn update_mnk(
         evw_interact.send_default();
     }
 
-    if keys.just_pressed(KeyCode::Numpad1) {
-        evw_select_weapons.send(SelectWeaponInputEvent(inventory::SelectedWeapon::Primary));
+    if keys.just_pressed(KeyCode::Digit1) {
+        evw_select_weapons.send(SelectWeaponInputEvent(inventory::WeaponSlot::Primary));
     }
-    if keys.just_pressed(KeyCode::Numpad2) {
-        evw_select_weapons.send(SelectWeaponInputEvent(inventory::SelectedWeapon::Secondary));
+    if keys.just_pressed(KeyCode::Digit2) {
+        evw_select_weapons.send(SelectWeaponInputEvent(inventory::WeaponSlot::Secondary));
     }
 
     input_state.firing = input_state.firing || mouse_buttons.pressed(MouseButton::Left);

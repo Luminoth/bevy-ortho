@@ -46,7 +46,7 @@ fn check_bullet_despawn(
 ) {
     for (entity, bullet, transform) in bullet_query.iter() {
         if bullet.origin.distance(transform.translation) > bullet.max_distance {
-            info!("despawning stray bullet");
+            debug!("despawning stray bullet");
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -66,7 +66,8 @@ fn handle_collisions(
 ) {
     for (entity, colliding_entities) in bullet_query.iter() {
         for colliding_entity in colliding_entities.iter() {
-            info!("bullet {} collides with {}", entity, colliding_entity);
+            debug!("bullet {} collides with {}", entity, colliding_entity);
+            warn!("TODO: signal bullet collision");
             commands.entity(entity).despawn_recursive();
         }
     }

@@ -13,7 +13,7 @@ pub const AMMO_LENGTH: f32 = 0.5;
 pub const THROWABLE_RADIUS: f32 = 0.2;
 pub const CONSUMABLE_RADIUS: f32 = 0.2;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::EnumCount)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display, strum::EnumCount)]
 pub enum InventoryItem {
     Weapon(data::WeaponType),
     Ammo(data::AmmoType),
@@ -57,8 +57,8 @@ impl InventoryItem {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Default)]
-pub enum SelectedWeapon {
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Default, strum::Display)]
+pub enum WeaponSlot {
     #[default]
     Primary,
     Secondary,
@@ -68,7 +68,7 @@ pub enum SelectedWeapon {
 pub struct Inventory {
     primary: Option<weapon::Weapon>,
     secondary: Option<weapon::Weapon>,
-    selected_weapon: SelectedWeapon,
+    selected_weapon: WeaponSlot,
 
     items: HashMap<InventoryItem, u8>,
 }
@@ -78,37 +78,92 @@ impl Inventory {
         self.primary.is_some() || self.secondary.is_some()
     }
 
-    pub fn get_selected_weapon_mut(&mut self) -> Option<&mut weapon::Weapon> {
-        match self.selected_weapon {
-            SelectedWeapon::Primary => self.primary.as_mut(),
-            SelectedWeapon::Secondary => self.secondary.as_mut(),
+    fn get_weapon_item(&self, weapon_slot: WeaponSlot) -> Option<&weapon::Weapon> {
+        match weapon_slot {
+            WeaponSlot::Primary => self.primary.as_ref(),
+            WeaponSlot::Secondary => self.secondary.as_ref(),
         }
     }
 
-    pub fn select_weapon(&mut self, weapon: SelectedWeapon) {
-        self.selected_weapon = weapon;
+    fn get_weapon_item_mut(&mut self, weapon_slot: WeaponSlot) -> Option<&mut weapon::Weapon> {
+        match weapon_slot {
+            WeaponSlot::Primary => self.primary.as_mut(),
+            WeaponSlot::Secondary => self.secondary.as_mut(),
+        }
     }
 
-    pub fn toggle_weapon(&mut self) {
+    pub fn get_selected_weapon_item(&mut self) -> Option<&weapon::Weapon> {
+        self.get_weapon_item(self.selected_weapon)
+    }
+
+    fn get_unselected_weapon_item(&mut self) -> Option<&weapon::Weapon> {
         match self.selected_weapon {
-            SelectedWeapon::Primary => self.select_weapon(SelectedWeapon::Secondary),
-            SelectedWeapon::Secondary => self.select_weapon(SelectedWeapon::Primary),
+            WeaponSlot::Primary => self.get_weapon_item(WeaponSlot::Secondary),
+            WeaponSlot::Secondary => self.get_weapon_item(WeaponSlot::Primary),
+        }
+    }
+
+    pub fn get_selected_weapon_item_mut(&mut self) -> Option<&mut weapon::Weapon> {
+        self.get_weapon_item_mut(self.selected_weapon)
+    }
+
+    fn set_weapon_item(&mut self, weapon_slot: WeaponSlot, weapon: weapon::Weapon) {
+        match weapon_slot {
+            WeaponSlot::Primary => {
+                info!("setting primary weapon {:?}", weapon);
+                self.primary = Some(weapon);
+            }
+            WeaponSlot::Secondary => {
+                info!("setting secondary weapon {:?}", weapon);
+                self.secondary = Some(weapon);
+            }
+        }
+        warn!("TODO: handle replace weapon");
+    }
+
+    fn set_selected_weapon_item(&mut self, weapon: weapon::Weapon) {
+        self.set_weapon_item(self.selected_weapon, weapon);
+    }
+
+    fn set_unselected_weapon_item(&mut self, weapon: weapon::Weapon) {
+        match self.selected_weapon {
+            WeaponSlot::Primary => self.set_weapon_item(WeaponSlot::Secondary, weapon),
+            WeaponSlot::Secondary => self.set_weapon_item(WeaponSlot::Primary, weapon),
+        }
+    }
+
+    pub fn set_selected_weapon(&mut self, weapon_slot: WeaponSlot) {
+        info!(
+            "select weapon {}: {}",
+            weapon_slot,
+            self.get_weapon_item(weapon_slot).is_some()
+        );
+        self.selected_weapon = weapon_slot;
+    }
+
+    pub fn toggle_selected_weapon(&mut self) {
+        match self.selected_weapon {
+            WeaponSlot::Primary => self.set_selected_weapon(WeaponSlot::Secondary),
+            WeaponSlot::Secondary => self.set_selected_weapon(WeaponSlot::Primary),
         }
     }
 
     pub fn add_item(&mut self, item: InventoryItem) -> bool {
         match item {
-            InventoryItem::Weapon(_) => match self.selected_weapon {
-                SelectedWeapon::Primary => {
-                    self.primary = Some(weapon::Weapon::new(item));
+            InventoryItem::Weapon(_) => {
+                if self.get_selected_weapon_item().is_none() {
+                    self.set_selected_weapon_item(weapon::Weapon::new(item));
                     true
-                }
-                SelectedWeapon::Secondary => {
-                    self.secondary = Some(weapon::Weapon::new(item));
+                } else if self.get_unselected_weapon_item().is_none() {
+                    self.set_unselected_weapon_item(weapon::Weapon::new(item));
                     true
+                } else {
+                    false
                 }
-            },
+            }
             InventoryItem::Ammo(_) | InventoryItem::Throwable | InventoryItem::Consumable => {
+                info!("adding item {}", item);
+                warn!("TODO: verify space available");
                 *self.items.entry(item).or_default() += 1;
                 true
             }
