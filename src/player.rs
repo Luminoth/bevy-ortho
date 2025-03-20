@@ -17,7 +17,27 @@ pub struct Animations {
 }
 
 #[derive(Debug, Component)]
-pub struct Player;
+pub struct Player {
+    toggle_select_timer: Timer,
+    weapon_select_timer: (inventory::WeaponSlot, Timer),
+}
+
+impl Player {
+    fn new() -> Self {
+        let mut this = Self {
+            toggle_select_timer: Timer::from_seconds(0.5, TimerMode::Once),
+            weapon_select_timer: (
+                inventory::WeaponSlot::default(),
+                Timer::from_seconds(0.5, TimerMode::Once),
+            ),
+        };
+
+        this.toggle_select_timer.pause();
+        this.weapon_select_timer.1.pause();
+
+        this
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct LocalPlayer;
@@ -41,9 +61,15 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (update_player, (listen_weapon_select, handle_firing))
+            (move_player, (listen_weapon_select, handle_firing))
                 .chain()
                 .after(input::InputSet)
+                .run_if(in_state(AppState::InGame))
+                .in_set(PlayerSet),
+        )
+        .add_systems(
+            Update,
+            update_player
                 .run_if(in_state(AppState::InGame))
                 .in_set(PlayerSet),
         )
@@ -52,6 +78,26 @@ impl Plugin for PlayerPlugin {
 }
 
 fn update_player(
+    time: Res<Time>,
+    mut inventory: ResMut<inventory::Inventory>,
+    mut player_query: Query<&mut Player>,
+) {
+    for mut player in player_query.iter_mut() {
+        player.toggle_select_timer.tick(time.delta());
+        if player.toggle_select_timer.just_finished() {
+            info!("toggle weapon");
+            inventory.toggle_selected_weapon();
+        }
+
+        player.weapon_select_timer.1.tick(time.delta());
+        if player.weapon_select_timer.1.just_finished() {
+            info!("select weapon {}", player.weapon_select_timer.0);
+            inventory.set_selected_weapon(player.weapon_select_timer.0);
+        }
+    }
+}
+
+fn move_player(
     input_state: Res<input::InputState>,
     mut player_query: Query<(&mut TnuaController, &GlobalTransform), With<LocalPlayer>>,
     cursor_query: Query<&Node, With<cursor::Cursor>>,
@@ -111,22 +157,35 @@ fn listen_interact(
 }
 
 fn listen_weapon_select(
-    mut inventory: ResMut<inventory::Inventory>,
+    inventory: Res<inventory::Inventory>,
     mut evr_toggle_weapon: EventReader<input::ToggleWeaponInputEvent>,
     mut evr_select_weapon: EventReader<input::SelectWeaponInputEvent>,
+    mut player_query: Query<&mut Player, With<LocalPlayer>>,
 ) {
     // TODO: we can't select / toggle empty weapon slots
     if inventory.has_weapon() {
+        let mut player = player_query.single_mut();
+        if (!player.toggle_select_timer.paused() && !player.toggle_select_timer.finished())
+            || (!player.weapon_select_timer.1.paused() && !player.weapon_select_timer.1.finished())
+        {
+            return;
+        }
+
         if evr_select_weapon.is_empty() {
             if !evr_toggle_weapon.is_empty() {
-                warn!("TODO: toggle weapon takes time");
-                inventory.toggle_selected_weapon();
+                // TODO: this would come from the animation
+                player.toggle_select_timer.reset();
+                player.toggle_select_timer.unpause();
             }
         } else {
             let selected = evr_select_weapon.read().next().unwrap();
+            let weapon_slot = *selected.deref();
 
-            warn!("TODO: select weapon takes time");
-            inventory.set_selected_weapon(*selected.deref());
+            player.weapon_select_timer.0 = weapon_slot;
+
+            // TODO: this would come from the animation
+            player.weapon_select_timer.1.reset();
+            player.weapon_select_timer.1.unpause();
         }
     }
 
@@ -169,7 +228,7 @@ pub fn spawn_player(
         Visibility::default(),
         CollidingEntities::default(),
         Name::new("Player"),
-        Player,
+        Player::new(),
         LocalPlayer,
     ));
 
