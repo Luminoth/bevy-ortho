@@ -27,10 +27,10 @@ impl Projectile {
 pub struct ProjectileModel;
 
 #[derive(Debug, Event)]
-pub struct ProjectileFizzle;
+pub struct ProjectileFizzleEvent;
 
 #[derive(Debug, Event)]
-pub struct ProjectileCollision {
+pub struct ProjectileCollisionEvent {
     pub target: Entity,
 }
 
@@ -57,7 +57,7 @@ fn check_projectile_despawn(
     for (entity, projectile, transform) in projectile_query.iter() {
         if projectile.origin.distance(transform.translation) > projectile.max_distance {
             debug!("despawning stray projectile");
-            commands.trigger_targets(ProjectileFizzle, entity);
+            commands.trigger_targets(ProjectileFizzleEvent, entity);
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -82,7 +82,7 @@ fn handle_collisions(
         for colliding_entity in colliding_entities.iter() {
             debug!("projectile {} collides with {}", entity, colliding_entity);
             commands.trigger_targets(
-                ProjectileCollision {
+                ProjectileCollisionEvent {
                     target: *colliding_entity,
                 },
                 entity,

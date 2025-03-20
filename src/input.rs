@@ -16,17 +16,23 @@ pub struct InputState {
     pub primary: Vec2,
     pub secondary: Vec2,
 
+    firing_pressed: bool,
     pub firing: bool,
 }
 
 // TODO: genericize input events
-// TODO: make input events triggers
 
 #[derive(Debug, Default, Event)]
 pub struct InteractInputEvent;
 
 #[derive(Debug, Default, Event)]
 pub struct ToggleWeaponInputEvent;
+
+#[derive(Debug, Default, Event)]
+pub struct FiringInputStartEvent;
+
+#[derive(Debug, Default, Event)]
+pub struct FiringInputEndEvent;
 
 #[derive(Debug, Deref, Event)]
 pub struct SelectWeaponInputEvent(inventory::WeaponSlot);
@@ -41,13 +47,20 @@ impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            ((handle_gamepad_events, update_gamepad).chain(), update_mnk).in_set(InputSet),
+            (
+                ((handle_gamepad_events, update_gamepad).chain(), update_mnk),
+                update_firing,
+            )
+                .chain()
+                .in_set(InputSet),
         )
         .add_systems(PostUpdate, clear_input)
         .init_resource::<InputState>()
         .add_event::<InteractInputEvent>()
         .add_event::<ToggleWeaponInputEvent>()
-        .add_event::<SelectWeaponInputEvent>();
+        .add_event::<SelectWeaponInputEvent>()
+        .add_event::<FiringInputStartEvent>()
+        .add_event::<FiringInputEndEvent>();
     }
 }
 
@@ -55,7 +68,7 @@ fn clear_input(mut input_state: ResMut<InputState>) {
     input_state.primary = Vec2::ZERO;
     input_state.secondary = Vec2::ZERO;
 
-    input_state.firing = false;
+    input_state.firing_pressed = false;
 }
 
 fn handle_gamepad_events(
@@ -136,7 +149,7 @@ fn update_mnk(
         evw_select_weapons.send(SelectWeaponInputEvent(inventory::WeaponSlot::Secondary));
     }
 
-    input_state.firing = input_state.firing || mouse_buttons.pressed(MouseButton::Left);
+    input_state.firing_pressed |= mouse_buttons.pressed(MouseButton::Left);
 }
 
 fn update_gamepad(
@@ -182,5 +195,19 @@ fn update_gamepad(
         evw_toggle_weapons.send_default();
     }
 
-    input_state.firing = input_state.firing || gamepad.pressed(GamepadButton::RightTrigger);
+    input_state.firing_pressed |= gamepad.pressed(GamepadButton::RightTrigger);
+}
+
+fn update_firing(
+    mut input_state: ResMut<InputState>,
+    mut evw_firing_start: EventWriter<FiringInputStartEvent>,
+    mut evw_firing_end: EventWriter<FiringInputEndEvent>,
+) {
+    if !input_state.firing && input_state.firing_pressed {
+        evw_firing_start.send_default();
+    } else if input_state.firing && !input_state.firing_pressed {
+        evw_firing_end.send_default();
+    }
+
+    input_state.firing = input_state.firing_pressed;
 }

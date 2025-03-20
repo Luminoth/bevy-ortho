@@ -57,7 +57,7 @@ impl Weapon {
     }
 }
 
-#[derive(Event)]
+#[derive(Debug, Event)]
 struct FireWeaponEvent {
     owner: Entity,
     origin: Vec3,
@@ -79,11 +79,11 @@ pub struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_observer(fire_weapon_handler);
+        app.add_observer(on_fire_weapon);
     }
 }
 
-fn fire_weapon_handler(
+fn on_fire_weapon(
     trigger: Trigger<FireWeaponEvent>,
     mut commands: Commands,
     game_assets: Res<GameAssets>,
@@ -103,11 +103,11 @@ fn fire_weapon_handler(
     .observe(on_bullet_collision);
 }
 
-fn on_bullet_fizzle(trigger: Trigger<projectile::ProjectileFizzle>) {
+fn on_bullet_fizzle(trigger: Trigger<projectile::ProjectileFizzleEvent>) {
     info!("bullet fizzle for {}", trigger.entity());
 }
 
-fn on_bullet_collision(trigger: Trigger<projectile::ProjectileCollision>) {
+fn on_bullet_collision(trigger: Trigger<projectile::ProjectileCollisionEvent>) {
     info!(
         "bullet collision for {}: {}",
         trigger.entity(),

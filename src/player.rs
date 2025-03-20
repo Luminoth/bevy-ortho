@@ -61,7 +61,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (move_player, (listen_weapon_select, handle_firing))
+            (move_player, (handle_weapon_select_input, handle_firing))
                 .chain()
                 .after(input::InputSet)
                 .run_if(in_state(AppState::InGame))
@@ -73,7 +73,7 @@ impl Plugin for PlayerPlugin {
                 .run_if(in_state(AppState::InGame))
                 .in_set(PlayerSet),
         )
-        .add_systems(PostProcessCollisions, listen_interact);
+        .add_systems(PostProcessCollisions, handle_interact_input);
     }
 }
 
@@ -129,9 +129,9 @@ fn move_player(
     }
 }
 
-fn listen_interact(
+fn handle_interact_input(
+    mut commands: Commands,
     mut evr_interact: EventReader<input::InteractInputEvent>,
-    mut evw_interact: EventWriter<interactables::InteractEvent>,
     player_query: Query<&CollidingEntities, With<LocalPlayer>>,
     interactable_query: Query<(&interactables::InteractableType, &Parent)>,
 ) {
@@ -148,7 +148,10 @@ fn listen_interact(
 
         if let Ok((interactable, parent)) = interactable {
             let parent = parent.get();
-            evw_interact.send(interactables::InteractEvent(parent, *interactable));
+            commands.trigger(interactables::InteractEvent {
+                target: parent,
+                target_type: *interactable,
+            });
             break;
         }
     }
@@ -156,7 +159,7 @@ fn listen_interact(
     evr_interact.clear();
 }
 
-fn listen_weapon_select(
+fn handle_weapon_select_input(
     inventory: Res<inventory::Inventory>,
     mut evr_toggle_weapon: EventReader<input::ToggleWeaponInputEvent>,
     mut evr_select_weapon: EventReader<input::SelectWeaponInputEvent>,

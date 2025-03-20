@@ -3,7 +3,7 @@ use std::ops::Deref;
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{AppState, GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, inventory, loot, player};
+use crate::{GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, inventory, loot};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Component, strum::Display)]
 pub enum InteractableType {
@@ -11,46 +11,36 @@ pub enum InteractableType {
 }
 
 #[derive(Debug, Event)]
-pub struct InteractEvent(pub Entity, pub InteractableType);
+pub struct InteractEvent {
+    pub target: Entity,
+    pub target_type: InteractableType,
+}
 
 #[derive(Debug)]
 pub struct InteractablesPlugin;
 
 impl Plugin for InteractablesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            listen_interact
-                .run_if(in_state(AppState::InGame))
-                .after(player::PlayerSet),
-        )
-        .add_event::<InteractEvent>();
+        app.add_observer(on_interact);
     }
 }
 
-fn listen_interact(
+fn on_interact(
+    trigger: Trigger<InteractEvent>,
     mut commands: Commands,
     mut inventory: ResMut<inventory::Inventory>,
-    mut evr_interact: EventReader<InteractEvent>,
     ground_loot_query: Query<&loot::GroundLoot>,
 ) {
-    if evr_interact.is_empty() {
-        return;
-    }
-
-    let evt = evr_interact.read().next().unwrap();
-    match evt.1 {
+    match trigger.target_type {
         InteractableType::GroundLoot => {
-            let loot = ground_loot_query.get(evt.0).unwrap();
+            let loot = ground_loot_query.get(trigger.target).unwrap();
 
             if inventory.add_item(*loot.deref()) {
                 info!("picked up ground loot {:?}", loot.deref());
-                commands.entity(evt.0).despawn_recursive();
+                commands.entity(trigger.target).despawn_recursive();
             }
         }
     }
-
-    evr_interact.clear();
 }
 
 pub fn spawn_interactable(parent: &mut ChildBuilder, r#type: InteractableType) {
