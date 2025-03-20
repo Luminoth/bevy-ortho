@@ -97,14 +97,8 @@ fn on_fire_weapon(
         trigger.direction,
         // TODO: these from weapon / ammo data ?
         200.0,
-        30.0,
     )
-    .observe(on_bullet_fizzle)
     .observe(on_bullet_collision);
-}
-
-fn on_bullet_fizzle(trigger: Trigger<projectile::ProjectileFizzleEvent>) {
-    info!("bullet fizzle for {}", trigger.entity());
 }
 
 fn on_bullet_collision(trigger: Trigger<projectile::ProjectileCollisionEvent>) {

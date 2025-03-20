@@ -5,6 +5,8 @@ use bevy::prelude::*;
 
 use crate::{GameCollisionLayers, INTERACTABLE_INTERACT_LAYERS, inventory, loot};
 
+const INTERACTABLE_RADIUS: f32 = 1.0;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Component, strum::Display)]
 pub enum InteractableType {
     GroundLoot,
@@ -45,7 +47,7 @@ fn on_interact(
 
 pub fn spawn_interactable(parent: &mut ChildBuilder, r#type: InteractableType) {
     parent.spawn((
-        Collider::sphere(0.5),
+        Collider::sphere(INTERACTABLE_RADIUS),
         CollisionLayers::new(
             GameCollisionLayers::Interactable,
             INTERACTABLE_INTERACT_LAYERS,

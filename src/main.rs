@@ -22,8 +22,7 @@ use rand::prelude::*;
 
 const DEFAULT_RESOLUTION: (f32, f32) = (1280.0, 720.0);
 const VIEWPORT_HEIGHT: f32 = 20.0;
-const CAMERA_OFFSET: Vec3 = Vec3::new(0.0, 5.0, 5.0);
-const WORLD_ROTATION: f32 = 45.0_f32.to_radians();
+const CAMERA_OFFSET: Vec3 = Vec3::new(0.0, VIEWPORT_HEIGHT * 0.5, VIEWPORT_HEIGHT * 0.5);
 
 #[derive(Debug, Deref, DerefMut, Resource)]
 pub struct RandomSource(StdRng);
@@ -260,11 +259,7 @@ fn load_assets(
     {
         camera::spawn_main_camera(&mut commands, VIEWPORT_HEIGHT, CAMERA_OFFSET);
 
-        world::spawn_world(
-            &mut commands,
-            &assets,
-            Quat::from_axis_angle(Vec3::Y, WORLD_ROTATION),
-        );
+        world::spawn_world(&mut commands, &assets);
     }
 
     commands.insert_resource(assets);

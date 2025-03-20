@@ -9,25 +9,16 @@ use crate::{GameAssets, GameCollisionLayers, PROJECTILE_INTERACT_LAYERS};
 #[require(Transform)]
 pub struct Projectile {
     owner: Entity,
-    origin: Vec3,
-    max_distance: f32,
 }
 
 impl Projectile {
-    fn new(owner: Entity, origin: Vec3, max_distance: f32) -> Self {
-        Self {
-            owner,
-            origin,
-            max_distance,
-        }
+    fn new(owner: Entity) -> Self {
+        Self { owner }
     }
 }
 
 #[derive(Debug, Component)]
 pub struct ProjectileModel;
-
-#[derive(Debug, Event)]
-pub struct ProjectileFizzleEvent;
 
 #[derive(Debug, Event)]
 pub struct ProjectileCollisionEvent {
@@ -45,21 +36,7 @@ impl Plugin for ProjectilePlugin {
         app.add_systems(
             PostProcessCollisions,
             (filter_collisions, handle_collisions).chain(),
-        )
-        .add_systems(PostUpdate, check_projectile_despawn);
-    }
-}
-
-fn check_projectile_despawn(
-    mut commands: Commands,
-    projectile_query: Query<(Entity, &Projectile, &Transform)>,
-) {
-    for (entity, projectile, transform) in projectile_query.iter() {
-        if projectile.origin.distance(transform.translation) > projectile.max_distance {
-            debug!("despawning stray projectile");
-            commands.trigger_targets(ProjectileFizzleEvent, entity);
-            commands.entity(entity).despawn_recursive();
-        }
+        );
     }
 }
 
@@ -102,14 +79,13 @@ fn spawn_projectile<'a>(
     origin: Vec3,
     direction: Dir3,
     speed: f32,
-    max_distance: f32,
 ) -> EntityCommands<'a> {
     let mut commands = commands.spawn((
         Transform::from_translation(origin).looking_to(direction, Vec3::Y),
         Visibility::default(),
         CollidingEntities::default(),
         Name::new(name),
-        Projectile::new(owner, origin, max_distance),
+        Projectile::new(owner),
     ));
 
     commands.insert((
@@ -136,7 +112,6 @@ pub fn spawn_bullet<'a>(
     origin: Vec3,
     direction: Dir3,
     speed: f32,
-    max_distance: f32,
 ) -> EntityCommands<'a> {
     spawn_projectile(
         commands,
@@ -147,6 +122,5 @@ pub fn spawn_bullet<'a>(
         origin,
         direction,
         speed,
-        max_distance,
     )
 }
