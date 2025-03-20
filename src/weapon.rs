@@ -8,6 +8,17 @@ pub struct Weapon {
     pub last_fire_ts: f32,
 }
 
+/*
+TODO:
+
+need an event for "start fire" and "end fire"
+semi-auto fires on "start fire" only
+full-auto fires on "start fire" and then on a timer every "cooldown" seconds
+    ignore new "start fire" while on cooldown
+burst fires on "start fire" and then on a timer every "cooldown" seconds until the burst is over
+    this ignores "start fire" while it's bursting ?
+*/
+
 impl Weapon {
     pub fn new(item: inventory::InventoryItem) -> Self {
         match item {
