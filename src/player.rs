@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 
 use crate::{
-    AppState, GameAssets, GameCollisionLayers, PLAYER_INTERACT_LAYERS, camera, cursor, data, input,
+    AppState, GameCollisionLayers, PLAYER_INTERACT_LAYERS, assets, camera, cursor, data, input,
     interactables, inventory,
 };
 
@@ -225,7 +225,7 @@ fn handle_firing(
 
 pub fn spawn_player(
     commands: &mut Commands,
-    game_assets: &GameAssets,
+    game_assets: &assets::GameAssets,
     spawn_transform: &GlobalTransform,
 ) {
     let mut commands = commands.spawn((

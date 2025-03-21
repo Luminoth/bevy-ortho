@@ -2,7 +2,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use crate::{
-    GameAssets, GameCollisionLayers, LOOT_INTERACT_LAYERS, RandomSource, interactables, inventory,
+    GameCollisionLayers, LOOT_INTERACT_LAYERS, RandomSource, assets, interactables, inventory,
 };
 
 #[derive(Debug, Component)]
@@ -51,7 +51,7 @@ fn animate_bobbers(time: Res<Time>, mut bobber_query: Query<(&Bobber, &mut Trans
 
 pub fn spawn_ground_loot(
     commands: &mut Commands,
-    game_assets: &GameAssets,
+    game_assets: &assets::GameAssets,
     random: &mut RandomSource,
     spawn_transform: &GlobalTransform,
 ) {

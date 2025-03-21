@@ -1,6 +1,6 @@
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{color::palettes::css, prelude::*, window::PrimaryWindow};
 
-use crate::{AppState, input, player};
+use crate::{AppState, input, player, ui};
 
 #[derive(Debug, Component)]
 pub struct Cursor;
@@ -40,66 +40,45 @@ fn update_cursor(
 }
 
 pub fn spawn_cursor(commands: &mut Commands, position: Vec2) {
-    let mut commands = commands.spawn((
-        Node {
-            left: Val::Px(position.x),
-            top: Val::Px(position.y),
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            ..default()
-        },
-        Name::new("Cursor"),
-        Cursor,
-    ));
-
-    commands.with_children(|parent| {
+    ui::spawn_panel_at(
+        commands,
+        (Val::Px(position.x), Val::Px(position.y)),
+        (Val::Auto, Val::Auto),
+        "Cursor",
+    )
+    .insert(Cursor)
+    .with_children(|parent| {
         // top
-        parent.spawn((
-            Node {
-                top: Val::Px(-15.0),
-                width: Val::Px(1.0),
-                height: Val::Px(20.0),
-                position_type: PositionType::Absolute,
-                ..default()
-            },
-            ImageNode::solid_color(Color::srgb(1.0, 0.0, 0.0)),
-        ));
+        ui::spawn_image_at(
+            parent,
+            (Val::Auto, Val::Px(-15.0)),
+            (Val::Px(1.0), Val::Px(20.0)),
+            ImageNode::solid_color(css::RED.into()),
+        );
 
         // bottom
-        parent.spawn((
-            Node {
-                top: Val::Px(15.0),
-                width: Val::Px(1.0),
-                height: Val::Px(20.0),
-                position_type: PositionType::Absolute,
-                ..default()
-            },
-            ImageNode::solid_color(Color::srgb(0.0, 1.0, 0.0)),
-        ));
+        ui::spawn_image_at(
+            parent,
+            (Val::Auto, Val::Px(15.0)),
+            (Val::Px(1.0), Val::Px(20.0)),
+            ImageNode::solid_color(css::GREEN.into()),
+        );
 
         // left
-        parent.spawn((
-            Node {
-                left: Val::Px(-15.0),
-                width: Val::Px(20.0),
-                height: Val::Px(1.0),
-                position_type: PositionType::Absolute,
-                ..default()
-            },
-            ImageNode::solid_color(Color::srgb(0.0, 0.0, 1.0)),
-        ));
+        ui::spawn_image_at(
+            parent,
+            (Val::Px(-15.0), Val::Auto),
+            (Val::Px(20.0), Val::Px(1.0)),
+            ImageNode::solid_color(css::BLUE.into()),
+        );
 
         // right
-        parent.spawn((
-            Node {
-                left: Val::Px(15.0),
-                width: Val::Px(20.0),
-                height: Val::Px(1.0),
-                position_type: PositionType::Absolute,
-                ..default()
-            },
-            ImageNode::solid_color(Color::srgb(0.0, 1.0, 1.0)),
-        ));
+        ui::spawn_image_at(
+            parent,
+            (Val::Px(15.0), Val::Auto),
+            (Val::Px(20.0), Val::Px(1.0)),
+            ImageNode::solid_color(css::YELLOW.into()),
+        );
     });
 }
 

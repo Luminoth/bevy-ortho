@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{GameAssets, data, inventory, projectile};
+use crate::{assets, data, inventory, projectile};
 
 #[derive(Debug)]
 pub struct Weapon {
@@ -13,7 +13,6 @@ pub struct Weapon {
 /*
 TODO:
 
-need an event for "start fire" and "end fire"
 semi-auto fires on "start fire" only
 full-auto fires on "start fire" and then on a timer every "cooldown" seconds
     ignore new "start fire" while on cooldown
@@ -90,7 +89,7 @@ impl Plugin for WeaponPlugin {
 fn on_fire_weapon(
     trigger: Trigger<FireWeaponEvent>,
     mut commands: Commands,
-    game_assets: Res<GameAssets>,
+    game_assets: Res<assets::GameAssets>,
     datum: Res<data::WeaponDataSource>,
 ) {
     let data = datum.get(&trigger.weapon_type).unwrap();

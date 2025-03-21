@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
-use crate::{GameAssets, GameCollisionLayers, WORLD_INTERACT_LAYERS, spawn};
+use crate::{GameCollisionLayers, WORLD_INTERACT_LAYERS, assets, spawn};
 
 pub const CEILING_HEIGHT: f32 = 10.0;
 
@@ -48,7 +48,7 @@ fn spawn_ceiling(commands: &mut Commands) {
     ));
 }
 
-fn spawn_floor(commands: &mut Commands, game_assets: &GameAssets) {
+fn spawn_floor(commands: &mut Commands, game_assets: &assets::GameAssets) {
     let mut commands = commands.spawn((
         game_assets.gen_floor_mesh_components(),
         Transform::from_xyz(0.0, 0.0, 0.0),
@@ -76,7 +76,12 @@ fn spawn_border(commands: &mut Commands, position: Vec3, rotation: Quat) {
     ));
 }
 
-fn spawn_wall(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, rotation: Quat) {
+fn spawn_wall(
+    commands: &mut Commands,
+    game_assets: &assets::GameAssets,
+    position: Vec3,
+    rotation: Quat,
+) {
     let mut commands = commands.spawn((
         game_assets.gen_wall_mesh_components(),
         Transform::from_translation(position).with_rotation(rotation),
@@ -90,7 +95,12 @@ fn spawn_wall(commands: &mut Commands, game_assets: &GameAssets, position: Vec3,
     ));
 }
 
-fn spawn_box(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, rotation: Quat) {
+fn spawn_box(
+    commands: &mut Commands,
+    game_assets: &assets::GameAssets,
+    position: Vec3,
+    rotation: Quat,
+) {
     let mut commands = commands.spawn((
         game_assets.gen_box_mesh_components(),
         Transform::from_translation(position).with_rotation(rotation),
@@ -104,7 +114,12 @@ fn spawn_box(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, 
     ));
 }
 
-fn spawn_crate(commands: &mut Commands, game_assets: &GameAssets, position: Vec3, rotation: Quat) {
+fn spawn_crate(
+    commands: &mut Commands,
+    game_assets: &assets::GameAssets,
+    position: Vec3,
+    rotation: Quat,
+) {
     let mut commands = commands.spawn((
         game_assets.gen_crate_mesh_components(),
         Transform::from_translation(position).with_rotation(rotation),
@@ -118,7 +133,7 @@ fn spawn_crate(commands: &mut Commands, game_assets: &GameAssets, position: Vec3
     ));
 }
 
-pub fn spawn_world(commands: &mut Commands, game_assets: &GameAssets) {
+pub fn spawn_world(commands: &mut Commands, game_assets: &assets::GameAssets) {
     commands.insert_resource(AmbientLight {
         color: css::WHITE.into(),
         brightness: 80.0,

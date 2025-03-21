@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use rand::prelude::*;
 use strum::{EnumCount, IntoEnumIterator};
 
-use crate::{GameAssets, RandomSource, data, weapon};
+use crate::{RandomSource, assets, data, weapon};
 
 pub const WEAPON_RADIUS: f32 = 0.25;
 pub const WEAPON_LENGTH: f32 = 0.5;
@@ -50,7 +50,7 @@ impl InventoryItem {
 
     pub fn gen_model(
         &self,
-        game_assets: &GameAssets,
+        game_assets: &assets::GameAssets,
     ) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {
         match self {
             Self::Weapon(_) => game_assets.gen_weapon_mesh_components(),

@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{GameAssets, GameCollisionLayers, PROJECTILE_INTERACT_LAYERS};
+use crate::{GameCollisionLayers, PROJECTILE_INTERACT_LAYERS, assets};
 
 #[derive(Debug, Component)]
 #[require(Transform)]
@@ -107,7 +107,7 @@ fn spawn_projectile<'a>(
 
 pub fn spawn_bullet<'a>(
     commands: &'a mut Commands,
-    game_assets: &GameAssets,
+    game_assets: &assets::GameAssets,
     owner: Entity,
     origin: Vec3,
     direction: Dir3,
