@@ -46,6 +46,7 @@ pub struct WeaponData {
     pub ammo_type: AmmoType,
     pub fire_mode: WeaponFireMode,
     pub fire_rate: f32,
+    pub projectile_speed: f32,
     pub damage: usize,
 }
 
@@ -62,6 +63,7 @@ fn register_weapon_data(commands: &mut Commands) {
             ammo_type: AmmoType::Light,
             fire_mode: WeaponFireMode::SemiAuto,
             fire_rate: 0.25,
+            projectile_speed: 200.0,
             damage: 10,
         },
     )])));

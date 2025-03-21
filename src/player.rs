@@ -217,6 +217,8 @@ fn handle_firing(
         // TODO: we might want to spawn this in front of the player as well
         // (currently it spawns inside the player and we filter the collision)
 
+        // TODO: if we can do this with an event / trigger
+        // it might be cleaner than calling a function
         weapon.fire(&mut commands, entity, &datum, &time, &origin);
     }
 }

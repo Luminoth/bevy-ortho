@@ -50,7 +50,7 @@ impl Weapon {
             return;
         }
 
-        commands.trigger(FireWeaponEvent::from_transform(owner, origin));
+        commands.trigger(FireWeaponEvent::new(owner, self.r#type, origin));
         self.last_fire_ts = time.elapsed_secs();
 
         info!("TODO: consume ammo");
@@ -60,14 +60,16 @@ impl Weapon {
 #[derive(Debug, Event)]
 struct FireWeaponEvent {
     owner: Entity,
+    weapon_type: data::WeaponType,
     origin: Vec3,
     direction: Dir3,
 }
 
 impl FireWeaponEvent {
-    fn from_transform(owner: Entity, transform: &Transform) -> Self {
+    fn new(owner: Entity, weapon_type: data::WeaponType, transform: &Transform) -> Self {
         Self {
             owner,
+            weapon_type,
             origin: transform.translation,
             direction: transform.forward(),
         }
@@ -87,16 +89,18 @@ fn on_fire_weapon(
     trigger: Trigger<FireWeaponEvent>,
     mut commands: Commands,
     game_assets: Res<GameAssets>,
+    datum: Res<data::WeaponDataSource>,
 ) {
-    // TODO: weapon determines the projectile to spawn here
+    let data = datum.get(&trigger.weapon_type).unwrap();
+
+    // TODO: weapon data determines the projectile to spawn here
     projectile::spawn_bullet(
         &mut commands,
         &game_assets,
         trigger.owner,
         trigger.origin,
         trigger.direction,
-        // TODO: these from weapon / ammo data ?
-        200.0,
+        data.projectile_speed,
     )
     .observe(on_bullet_collision);
 }
