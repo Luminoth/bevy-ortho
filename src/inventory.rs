@@ -21,6 +21,8 @@ pub enum InventoryItem {
     Ammo(data::AmmoType),
     Throwable,
     Consumable,
+    // TODO: character mods (abilities, passives, etc)
+    // TODO: weapon mods
 }
 
 impl InventoryItem {
