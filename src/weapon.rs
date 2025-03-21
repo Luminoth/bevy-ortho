@@ -6,6 +6,8 @@ use crate::{GameAssets, data, inventory, projectile};
 pub struct Weapon {
     pub r#type: data::WeaponType,
     pub last_fire_ts: f32,
+    // TODO: magazine capacity
+    // TODO: current ammo count
 }
 
 /*

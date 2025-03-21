@@ -15,7 +15,9 @@ pub const CONSUMABLE_RADIUS: f32 = 0.2;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display, strum::EnumCount)]
 pub enum InventoryItem {
+    // TODO: weapon loot should have an ammo count
     Weapon(data::WeaponType),
+    // TODO: ammo loot should have an ammo count
     Ammo(data::AmmoType),
     Throwable,
     Consumable,
