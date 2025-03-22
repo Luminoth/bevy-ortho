@@ -45,7 +45,10 @@ fn on_interact(
     }
 }
 
-pub fn spawn_interactable(parent: &mut ChildBuilder, r#type: InteractableType) {
+pub fn spawn_interactable<'a>(
+    parent: &'a mut ChildBuilder,
+    r#type: InteractableType,
+) -> EntityCommands<'a> {
     parent.spawn((
         Collider::sphere(INTERACTABLE_RADIUS),
         CollisionLayers::new(
@@ -55,5 +58,5 @@ pub fn spawn_interactable(parent: &mut ChildBuilder, r#type: InteractableType) {
         Sensor,
         Name::new("Interactable"),
         r#type,
-    ));
+    ))
 }

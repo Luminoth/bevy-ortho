@@ -1,14 +1,19 @@
-use bevy::{color::palettes::css, prelude::*};
+use bevy::prelude::*;
 
-use crate::{camera, inventory, player, projectile, world};
+use crate::{camera, loot, player, projectile, world};
 
 const VIEWPORT_HEIGHT: f32 = 20.0;
-const CAMERA_OFFSET: Vec3 = Vec3::new(0.0, VIEWPORT_HEIGHT * 0.5, VIEWPORT_HEIGHT * 0.5);
+const CAMERA_OFFSET: Vec3 = Vec3::new(
+    // TODO: this would be cool but it does mean rotating all the player input
+    0.0, //-VIEWPORT_HEIGHT * 0.5,
+    VIEWPORT_HEIGHT * 0.5,
+    VIEWPORT_HEIGHT * 0.5,
+);
 
 #[derive(Debug, Default)]
-struct MeshMaterial {
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
+pub struct MeshMaterial {
+    pub mesh: Handle<Mesh>,
+    pub material: Handle<StandardMaterial>,
 }
 
 impl MeshMaterial {
@@ -46,68 +51,23 @@ impl GameAssets {
         materials: &mut Assets<StandardMaterial>,
         animation_graphs: &mut Assets<AnimationGraph>,
     ) {
-        let (graph, node_indices) = AnimationGraph::from_clips([
-            asset_server.load(GltfAssetLabel::Animation(0).from_asset(player::MODEL_PATH))
-        ]);
+        // world
+        self.floor_mesh = world::load_floor_assets(meshes, materials);
+        self.wall_mesh = world::load_wall_assets(meshes, materials);
+        self.box_mesh = world::load_box_assets(meshes, materials);
+        self.crate_mesh = world::load_crate_assets(meshes, materials);
 
-        let graph_handle = animation_graphs.add(graph);
-        commands.insert_resource(player::Animations {
-            animations: node_indices,
-            graph: graph_handle,
-        });
+        // player
+        self.player_model = player::load_player_assets(commands, asset_server, animation_graphs);
 
-        self.player_model =
-            asset_server.load(GltfAssetLabel::Scene(0).from_asset(player::MODEL_PATH));
+        // loot
+        self.weapon_mesh = loot::load_weapon_assets(meshes, materials);
+        self.ammo_mesh = loot::load_ammo_assets(meshes, materials);
+        self.throwable_mesh = loot::load_throwable_assets(meshes, materials);
+        self.consumable_mesh = loot::load_consumable_assets(meshes, materials);
 
-        self.weapon_mesh.mesh = meshes.add(Capsule3d::new(
-            inventory::WEAPON_RADIUS,
-            inventory::WEAPON_LENGTH,
-        ));
-        self.weapon_mesh.material = materials.add(Color::from(css::DARK_RED));
-
-        self.ammo_mesh.mesh = meshes.add(Cuboid::new(
-            inventory::AMMO_LENGTH,
-            inventory::AMMO_LENGTH,
-            inventory::AMMO_LENGTH,
-        ));
-        self.ammo_mesh.material = materials.add(Color::from(css::GREEN_YELLOW));
-
-        self.throwable_mesh.mesh = meshes.add(Sphere::new(inventory::THROWABLE_RADIUS));
-        self.throwable_mesh.material = materials.add(Color::from(css::GREY));
-
-        self.consumable_mesh.mesh = meshes.add(Sphere::new(inventory::CONSUMABLE_RADIUS));
-        self.consumable_mesh.material = materials.add(Color::from(css::WHITE));
-
-        self.bullet_mesh.mesh = meshes.add(Sphere::new(projectile::BULLET_RADIUS));
-        self.bullet_mesh.material = materials.add(Color::from(css::BLACK));
-
-        self.floor_mesh.mesh = meshes.add(
-            Plane3d::default()
-                .mesh()
-                .size(world::FLOOR_X_LENGTH, world::FLOOR_Z_LENGTH),
-        );
-        self.floor_mesh.material = materials.add(Color::srgb(0.3, 0.5, 0.3));
-
-        self.wall_mesh.mesh = meshes.add(Cuboid::new(
-            world::WALL_X_LENGTH,
-            world::WALL_Y_LENGTH,
-            world::WALL_Z_LENGTH,
-        ));
-        self.wall_mesh.material = materials.add(Color::srgb(0.4, 0.7, 0.3));
-
-        self.box_mesh.mesh = meshes.add(Cuboid::new(
-            world::BOX_X_LENGTH,
-            world::BOX_Y_LENGTH,
-            world::BOX_Z_LENGTH,
-        ));
-        self.box_mesh.material = materials.add(Color::srgb(0.8, 0.7, 0.6));
-
-        self.crate_mesh.mesh = meshes.add(Cuboid::new(
-            world::CRATE_X_LENGTH,
-            world::CRATE_Y_LENGTH,
-            world::CRATE_Z_LENGTH,
-        ));
-        self.crate_mesh.material = materials.add(Color::srgb(0.8, 0.7, 0.6));
+        // projectiles
+        self.bullet_mesh = projectile::load_bullet_assets(meshes, materials);
     }
 
     pub fn gen_floor_mesh_components(&self) -> (Mesh3d, MeshMaterial3d<StandardMaterial>) {

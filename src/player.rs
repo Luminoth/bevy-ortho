@@ -11,7 +11,7 @@ use crate::{
 
 #[derive(Debug, Resource)]
 #[allow(dead_code)]
-pub struct Animations {
+struct PlayerAnimations {
     pub animations: Vec<AnimationNodeIndex>,
     pub graph: Handle<AnimationGraph>,
 }
@@ -46,7 +46,7 @@ pub struct LocalPlayer;
 pub struct PlayerModel;
 
 // TODO: move to player data
-pub const MODEL_PATH: &str = "human_1.glb";
+const MODEL_PATH: &str = "human_1.glb";
 const MOVE_SPEED: f32 = 8.0;
 const HEIGHT: f32 = 2.0;
 const MASS: f32 = 75.0;
@@ -221,6 +221,24 @@ fn handle_firing(
         // it might be cleaner than calling a function
         weapon.fire(&mut commands, entity, &datum, &time, &origin);
     }
+}
+
+pub fn load_player_assets(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    animation_graphs: &mut Assets<AnimationGraph>,
+) -> Handle<Scene> {
+    let (graph, node_indices) = AnimationGraph::from_clips([
+        asset_server.load(GltfAssetLabel::Animation(0).from_asset(MODEL_PATH))
+    ]);
+
+    let graph_handle = animation_graphs.add(graph);
+    commands.insert_resource(PlayerAnimations {
+        animations: node_indices,
+        graph: graph_handle,
+    });
+
+    asset_server.load(GltfAssetLabel::Scene(0).from_asset(MODEL_PATH))
 }
 
 pub fn spawn_player(

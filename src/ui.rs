@@ -54,6 +54,14 @@ pub fn spawn_canvas<'a>(
     commands
 }
 
+pub fn spawn_label<'a>(
+    parent: &'a mut ChildBuilder,
+    text: impl Into<String>,
+) -> EntityCommands<'a> {
+    parent.spawn((Text::new(text), PickingBehavior::IGNORE))
+}
+
+#[allow(dead_code)]
 pub fn spawn_label_at<'a>(
     parent: &'a mut ChildBuilder,
     position: (Val, Val),
@@ -87,5 +95,21 @@ pub fn spawn_image_at<'a>(
             ..default()
         },
         image,
+    ))
+}
+
+pub fn spawn_vbox_at<'a>(parent: &'a mut ChildBuilder, position: (Val, Val)) -> EntityCommands<'a> {
+    parent.spawn((
+        Node {
+            left: position.0,
+            top: position.1,
+            position_type: PositionType::Absolute,
+            align_items: AlignItems::Start,
+            justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },
+        Name::new("Column"),
+        PickingBehavior::IGNORE,
     ))
 }

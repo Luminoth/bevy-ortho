@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{color::palettes::css, prelude::*};
 
 use crate::{GameCollisionLayers, PROJECTILE_INTERACT_LAYERS, assets};
 
@@ -25,7 +25,7 @@ pub struct ProjectileCollisionEvent {
     pub target: Entity,
 }
 
-pub const BULLET_RADIUS: f32 = 0.1;
+const BULLET_RADIUS: f32 = 0.1;
 const MASS: f32 = 0.005;
 
 #[derive(Debug)]
@@ -66,6 +66,16 @@ fn handle_collisions(
             );
             commands.entity(entity).despawn_recursive();
         }
+    }
+}
+
+pub fn load_bullet_assets(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) -> assets::MeshMaterial {
+    assets::MeshMaterial {
+        mesh: meshes.add(Sphere::new(BULLET_RADIUS)),
+        material: materials.add(Color::from(css::BLACK)),
     }
 }
 

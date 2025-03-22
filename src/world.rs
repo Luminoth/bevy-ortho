@@ -3,26 +3,26 @@ use bevy::{color::palettes::css, prelude::*};
 
 use crate::{GameCollisionLayers, WORLD_INTERACT_LAYERS, assets, spawn};
 
-pub const CEILING_HEIGHT: f32 = 10.0;
+const CEILING_HEIGHT: f32 = 10.0;
 
-pub const FLOOR_X_LENGTH: f32 = 50.0;
-pub const FLOOR_Z_LENGTH: f32 = 50.0;
+const FLOOR_X_LENGTH: f32 = 50.0;
+const FLOOR_Z_LENGTH: f32 = 50.0;
 
-pub const BORDER_X_LENGTH: f32 = FLOOR_X_LENGTH;
-pub const BORDER_Y_LENGTH: f32 = CEILING_HEIGHT;
-pub const BORDER_Z_LENGTH: f32 = 1.0;
+const BORDER_X_LENGTH: f32 = FLOOR_X_LENGTH;
+const BORDER_Y_LENGTH: f32 = CEILING_HEIGHT;
+const BORDER_Z_LENGTH: f32 = 1.0;
 
-pub const WALL_X_LENGTH: f32 = 2.0;
-pub const WALL_Y_LENGTH: f32 = 2.0;
-pub const WALL_Z_LENGTH: f32 = 1.0;
+const WALL_X_LENGTH: f32 = 2.0;
+const WALL_Y_LENGTH: f32 = 2.0;
+const WALL_Z_LENGTH: f32 = 1.0;
 
-pub const BOX_X_LENGTH: f32 = 1.0;
-pub const BOX_Y_LENGTH: f32 = 1.0;
-pub const BOX_Z_LENGTH: f32 = 1.0;
+const BOX_X_LENGTH: f32 = 1.0;
+const BOX_Y_LENGTH: f32 = 1.0;
+const BOX_Z_LENGTH: f32 = 1.0;
 
-pub const CRATE_X_LENGTH: f32 = 2.0;
-pub const CRATE_Y_LENGTH: f32 = 1.0;
-pub const CRATE_Z_LENGTH: f32 = 1.0;
+const CRATE_X_LENGTH: f32 = 2.0;
+const CRATE_Y_LENGTH: f32 = 1.0;
+const CRATE_Z_LENGTH: f32 = 1.0;
 
 #[derive(Debug, Component)]
 pub struct WorldBorder;
@@ -131,6 +131,50 @@ fn spawn_crate(
         Collider::cuboid(CRATE_X_LENGTH, CRATE_Y_LENGTH, CRATE_Z_LENGTH),
         CollisionLayers::new(GameCollisionLayers::World, WORLD_INTERACT_LAYERS),
     ));
+}
+
+pub fn load_floor_assets(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) -> assets::MeshMaterial {
+    assets::MeshMaterial {
+        mesh: meshes.add(
+            Plane3d::default()
+                .mesh()
+                .size(FLOOR_X_LENGTH, FLOOR_Z_LENGTH),
+        ),
+        material: materials.add(Color::srgb(0.3, 0.5, 0.3)),
+    }
+}
+
+pub fn load_wall_assets(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) -> assets::MeshMaterial {
+    assets::MeshMaterial {
+        mesh: meshes.add(Cuboid::new(WALL_X_LENGTH, WALL_Y_LENGTH, WALL_Z_LENGTH)),
+        material: materials.add(Color::srgb(0.4, 0.7, 0.3)),
+    }
+}
+
+pub fn load_box_assets(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) -> assets::MeshMaterial {
+    assets::MeshMaterial {
+        mesh: meshes.add(Cuboid::new(BOX_X_LENGTH, BOX_Y_LENGTH, BOX_Z_LENGTH)),
+        material: materials.add(Color::srgb(0.8, 0.7, 0.6)),
+    }
+}
+
+pub fn load_crate_assets(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) -> assets::MeshMaterial {
+    assets::MeshMaterial {
+        mesh: meshes.add(Cuboid::new(CRATE_X_LENGTH, CRATE_Y_LENGTH, CRATE_Z_LENGTH)),
+        material: materials.add(Color::srgb(0.8, 0.7, 0.6)),
+    }
 }
 
 pub fn spawn_world(commands: &mut Commands, game_assets: &assets::GameAssets) {
