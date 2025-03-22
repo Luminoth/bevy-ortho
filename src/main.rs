@@ -128,12 +128,17 @@ fn spawn_loot(
 
 fn spawn_player(
     mut commands: Commands,
+    mut random: ResMut<RandomSource>,
     game_assets: Res<assets::GameAssets>,
     player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
 ) {
     commands.init_resource::<inventory::Inventory>();
 
-    let player_spawn = player_spawn_query.single();
+    let mut player_spawns = player_spawn_query.iter().collect::<Vec<_>>();
+
+    // TODO: this would be done for each player / party
+    let idx = (0..player_spawns.len()).choose(&mut random).unwrap();
+    let player_spawn = player_spawns.swap_remove(idx);
     player::spawn_player(&mut commands, &game_assets, player_spawn);
 }
 
