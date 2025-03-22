@@ -25,6 +25,7 @@ impl Plugin for HudPlugin {
 
 // TODO: updating this stuff every frame isn't great
 // especially since we're allocating every frame
+#[allow(clippy::type_complexity)]
 fn update_hud(
     inventory: Res<inventory::Inventory>,
     mut label_set: ParamSet<(
