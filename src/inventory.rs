@@ -1,17 +1,13 @@
-use std::collections::HashMap;
-
 use bevy::prelude::*;
 use rand::prelude::*;
 use strum::{EnumCount, IntoEnumIterator};
 
 use crate::{RandomSource, data, weapon};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display, strum::EnumCount)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Reflect, strum::Display, strum::EnumCount)]
 pub enum InventoryItem {
-    // TODO: weapon loot should have an ammo count
-    Weapon(data::WeaponType),
-    // TODO: ammo loot should have an ammo count
-    Ammo(data::AmmoType),
+    Weapon(data::WeaponType, usize),
+    Ammo(data::AmmoType, usize),
     Throwable,
     Consumable,
     // TODO: character mods (abilities, passives, etc)
@@ -19,11 +15,23 @@ pub enum InventoryItem {
 }
 
 impl InventoryItem {
-    pub fn new_random(rng: &mut RandomSource) -> Self {
+    pub fn random_loot(
+        rng: &mut RandomSource,
+        weapon_datum: &data::WeaponDatum,
+        ammo_datum: &data::AmmoDatum,
+    ) -> Self {
         // TODO: bro this sucks lol
         match rng.random_range(..Self::COUNT) {
-            0 => Self::Weapon(data::WeaponType::iter().choose(rng).unwrap()),
-            1 => Self::Ammo(data::AmmoType::iter().choose(rng).unwrap()),
+            0 => {
+                let weapon_type = data::WeaponType::iter().choose(rng).unwrap();
+                let weapon_data = weapon_datum.get(&weapon_type).unwrap();
+                Self::Weapon(weapon_type, weapon_data.magazine_size)
+            }
+            1 => {
+                let ammo_type = data::AmmoType::iter().choose(rng).unwrap();
+                let ammo_data = ammo_datum.get(&ammo_type).unwrap();
+                Self::Ammo(ammo_type, ammo_data.loot_size)
+            }
             2 => Self::Throwable,
             3 => Self::Consumable,
             _ => unreachable!(),
@@ -31,20 +39,34 @@ impl InventoryItem {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Default, strum::Display)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Default, Reflect, strum::Display)]
 pub enum WeaponSlot {
     #[default]
     Primary,
     Secondary,
 }
 
-#[derive(Debug, Default, Resource)]
+#[derive(Debug, Resource, Reflect)]
 pub struct Inventory {
     primary: Option<weapon::Weapon>,
     secondary: Option<weapon::Weapon>,
     selected_weapon: WeaponSlot,
 
-    items: HashMap<InventoryItem, u8>,
+    size: usize,
+    items: Vec<InventoryItem>,
+}
+
+impl Default for Inventory {
+    fn default() -> Self {
+        Self {
+            primary: None,
+            secondary: None,
+            selected_weapon: WeaponSlot::default(),
+            // TODO: size should come from data
+            size: 10,
+            items: Vec::with_capacity(10),
+        }
+    }
 }
 
 impl Inventory {
@@ -60,7 +82,7 @@ impl Inventory {
         self.secondary.as_ref()
     }
 
-    pub fn get_items(&self) -> &HashMap<InventoryItem, u8> {
+    pub fn get_items(&self) -> &Vec<InventoryItem> {
         &self.items
     }
 
@@ -136,23 +158,41 @@ impl Inventory {
 
     pub fn add_item(&mut self, item: InventoryItem) -> bool {
         match item {
-            InventoryItem::Weapon(_) => {
+            InventoryItem::Weapon(weapon_type, ammo_count) => {
                 if self.get_selected_weapon_item().is_none() {
-                    self.set_selected_weapon_item(weapon::Weapon::new(item));
+                    self.set_selected_weapon_item(weapon::Weapon::new(weapon_type, ammo_count));
                     true
                 } else if self.get_unselected_weapon_item().is_none() {
-                    self.set_unselected_weapon_item(weapon::Weapon::new(item));
+                    self.set_unselected_weapon_item(weapon::Weapon::new(weapon_type, ammo_count));
                     true
                 } else {
+                    warn!("TODO: hold to weapon swap");
                     false
                 }
             }
-            InventoryItem::Ammo(_) | InventoryItem::Throwable | InventoryItem::Consumable => {
-                info!("adding item {}", item);
-                warn!("TODO: verify space available");
-                *self.items.entry(item).or_default() += 1;
+            InventoryItem::Ammo(_, _) | InventoryItem::Throwable | InventoryItem::Consumable => {
+                if self.items.len() >= self.size {
+                    return false;
+                }
+
+                warn!("TODO: stack inventory items");
+
+                self.items.push(item);
+
+                warn!("TODO: sort inventory items");
+
                 true
             }
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct InventoryPlugin;
+
+impl Plugin for InventoryPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<Inventory>()
+            .register_type::<Inventory>();
     }
 }

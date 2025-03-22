@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display, strum::EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Reflect, strum::Display, strum::EnumIter)]
 pub enum AmmoType {
     Light,
 }
@@ -12,6 +12,8 @@ pub enum AmmoType {
 #[derive(Debug)]
 pub struct AmmoData {
     pub name: String,
+    pub loot_size: usize,
+    pub stack_size: usize,
 }
 
 pub type AmmoDatum = HashMap<AmmoType, AmmoData>;
@@ -24,11 +26,13 @@ fn register_ammo_data(commands: &mut Commands) {
         AmmoType::Light,
         AmmoData {
             name: "Light".to_owned(),
+            loot_size: 20,
+            stack_size: 50,
         },
     )])));
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, strum::Display, strum::EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Reflect, strum::Display, strum::EnumIter)]
 pub enum WeaponType {
     Pistol,
 }
@@ -44,6 +48,7 @@ pub enum WeaponFireMode {
 pub struct WeaponData {
     pub name: String,
     pub ammo_type: AmmoType,
+    pub magazine_size: usize,
     pub fire_mode: WeaponFireMode,
     pub fire_rate: f32,
     pub projectile_speed: f32,
@@ -61,6 +66,7 @@ fn register_weapon_data(commands: &mut Commands) {
         WeaponData {
             name: "Pistol".to_owned(),
             ammo_type: AmmoType::Light,
+            magazine_size: 10,
             fire_mode: WeaponFireMode::SemiAuto,
             fire_rate: 0.25,
             projectile_speed: 200.0,

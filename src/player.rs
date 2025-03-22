@@ -219,7 +219,11 @@ fn handle_firing(
 
         // TODO: if we can do this with an event / trigger
         // it might be cleaner than calling a function
-        weapon.fire(&mut commands, entity, &datum, &time, &origin);
+        if !weapon.fire(&mut commands, entity, &datum, &time, &origin) {
+            // TODO: if we have a different weapon and it can fire, switch to it (this takes time)
+            // otherwise if we have the correct type of ammo in our inventory
+            // trigger a reload (this takes time)
+        }
     }
 }
 

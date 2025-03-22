@@ -118,11 +118,20 @@ fn init_ui(mut commands: Commands, mut window_query: Query<&mut Window, With<Pri
 fn spawn_loot(
     mut commands: Commands,
     game_assets: Res<assets::GameAssets>,
+    weapon_datum: Res<data::WeaponDataSource>,
+    ammo_datum: Res<data::AmmoDataSource>,
     mut random: ResMut<RandomSource>,
     loot_spawn_query: Query<&GlobalTransform, With<spawn::GroundLootSpawn>>,
 ) {
     for loot_spawn in loot_spawn_query.iter() {
-        loot::spawn_ground_loot(&mut commands, &game_assets, &mut random, loot_spawn);
+        loot::spawn_ground_loot(
+            &mut commands,
+            &game_assets,
+            &weapon_datum,
+            &ammo_datum,
+            &mut random,
+            loot_spawn,
+        );
     }
 }
 
@@ -132,8 +141,6 @@ fn spawn_player(
     game_assets: Res<assets::GameAssets>,
     player_spawn_query: Query<&GlobalTransform, With<spawn::PlayerSpawn>>,
 ) {
-    commands.init_resource::<inventory::Inventory>();
-
     let mut player_spawns = player_spawn_query.iter().collect::<Vec<_>>();
 
     // TODO: this would be done for each player / party
@@ -218,6 +225,7 @@ fn main() {
             cursor::CursorPlugin,
             world::WorldPlugin,
             loot::GroundLootPlugin,
+            inventory::InventoryPlugin,
             player::PlayerPlugin,
             weapon::WeaponPlugin,
             projectile::ProjectilePlugin,

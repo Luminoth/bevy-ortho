@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-use crate::{assets, data, inventory, projectile};
+use crate::{assets, data, projectile};
 
-#[derive(Debug)]
+#[derive(Debug, Reflect)]
 pub struct Weapon {
     pub r#type: data::WeaponType,
+    pub ammo_count: usize,
+
     pub last_fire_ts: f32,
-    // TODO: magazine capacity
-    // TODO: current ammo count
 }
 
 /*
@@ -21,18 +21,18 @@ burst fires on "start fire" and then on a timer every "cooldown" seconds until t
 */
 
 impl Weapon {
-    pub fn new(item: inventory::InventoryItem) -> Self {
-        match item {
-            inventory::InventoryItem::Weapon(weapon_type) => Self {
-                r#type: weapon_type,
-                last_fire_ts: 0.0,
-            },
-            _ => unreachable!(),
+    pub fn new(weapon_type: data::WeaponType, ammo_count: usize) -> Self {
+        Self {
+            r#type: weapon_type,
+            ammo_count,
+            last_fire_ts: 0.0,
         }
     }
 
     pub fn can_fire(&self, datum: &data::WeaponDatum, time: &Time) -> bool {
-        info!("TODO: verify ammo available");
+        if self.ammo_count < 1 {
+            return false;
+        }
 
         let data = datum.get(&self.r#type).unwrap();
         info!("TODO: handle fire mode {}", data.fire_mode);
@@ -46,15 +46,17 @@ impl Weapon {
         datum: &data::WeaponDatum,
         time: &Time,
         origin: &Transform,
-    ) {
+    ) -> bool {
         if !self.can_fire(datum, time) {
-            return;
+            return false;
         }
 
         commands.trigger(FireWeaponEvent::new(owner, self.r#type, origin));
         self.last_fire_ts = time.elapsed_secs();
 
-        info!("TODO: consume ammo");
+        self.ammo_count -= 1;
+
+        true
     }
 }
 

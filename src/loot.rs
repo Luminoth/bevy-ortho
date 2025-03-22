@@ -2,7 +2,7 @@ use avian3d::prelude::*;
 use bevy::{color::palettes::css, prelude::*};
 
 use crate::{
-    GameCollisionLayers, LOOT_INTERACT_LAYERS, RandomSource, assets, interactables, inventory,
+    GameCollisionLayers, LOOT_INTERACT_LAYERS, RandomSource, assets, data, interactables, inventory,
 };
 
 #[derive(Debug, Component)]
@@ -29,7 +29,7 @@ const AMMO_LENGTH: f32 = 0.5;
 const THROWABLE_RADIUS: f32 = 0.2;
 const CONSUMABLE_RADIUS: f32 = 0.2;
 
-#[derive(Debug, Deref, Component)]
+#[derive(Debug, Deref, Component, Reflect)]
 pub struct GroundLoot(inventory::InventoryItem);
 
 #[derive(Debug, Component)]
@@ -41,7 +41,8 @@ pub struct GroundLootPlugin;
 
 impl Plugin for GroundLootPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, animate_bobbers);
+        app.add_systems(Update, animate_bobbers)
+            .register_type::<GroundLoot>();
     }
 }
 
@@ -98,17 +99,19 @@ pub fn load_consumable_assets(
 pub fn spawn_ground_loot(
     commands: &mut Commands,
     game_assets: &assets::GameAssets,
+    weapon_datum: &data::WeaponDatum,
+    ammo_datum: &data::AmmoDatum,
     random: &mut RandomSource,
     spawn_transform: &GlobalTransform,
 ) {
-    let item = inventory::InventoryItem::new_random(random);
+    let item = inventory::InventoryItem::random_loot(random, weapon_datum, ammo_datum);
 
     let (model, collider) = match item {
-        inventory::InventoryItem::Weapon(_) => (
+        inventory::InventoryItem::Weapon(_, _) => (
             game_assets.gen_weapon_mesh_components(),
             Collider::capsule(WEAPON_RADIUS, WEAPON_LENGTH),
         ),
-        inventory::InventoryItem::Ammo(_) => (
+        inventory::InventoryItem::Ammo(_, _) => (
             game_assets.gen_ammo_mesh_components(),
             Collider::cuboid(AMMO_LENGTH, AMMO_LENGTH, AMMO_LENGTH),
         ),

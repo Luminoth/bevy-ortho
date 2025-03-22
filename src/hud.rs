@@ -36,17 +36,29 @@ fn update_hud(
 ) {
     label_set.p0().single_mut().0 = format!(
         "Primary Weapon: {:?}",
-        inventory.get_primary_weapon().map(|weapon| weapon.r#type)
+        inventory
+            .get_primary_weapon()
+            .map(|weapon| (weapon.r#type, weapon.ammo_count))
     );
 
     label_set.p1().single_mut().0 = format!(
         "Secondary Weapon: {:?}",
-        inventory.get_secondary_weapon().map(|weapon| weapon.r#type)
+        inventory
+            .get_secondary_weapon()
+            .map(|weapon| (weapon.r#type, weapon.ammo_count))
     );
 
     let mut inventory_text = String::new();
-    for (item, count) in inventory.get_items() {
-        inventory_text.push_str(&format!("{}: {}\n", item, count));
+    for item in inventory.get_items() {
+        inventory_text.push_str(
+            match item {
+                inventory::InventoryItem::Ammo(ammo_type, ammo_count) => {
+                    format!("{}: {}\n", ammo_type, ammo_count)
+                }
+                _ => format!("{}\n", item),
+            }
+            .as_ref(),
+        )
     }
     label_set.p2().single_mut().0 = inventory_text;
 }

@@ -56,6 +56,7 @@ impl Plugin for InputPlugin {
         )
         .add_systems(PostUpdate, clear_input)
         .init_resource::<InputState>()
+        .register_type::<InputState>()
         .add_event::<InteractInputEvent>()
         .add_event::<ToggleWeaponInputEvent>()
         .add_event::<SelectWeaponInputEvent>()

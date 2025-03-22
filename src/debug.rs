@@ -50,7 +50,8 @@ impl Plugin for DebugPlugin {
                 (debug_ui, game_debug_ui).chain().run_if(show_debug_ui),
             ),
         )
-        .init_resource::<DebugSettings>();
+        .init_resource::<DebugSettings>()
+        .register_type::<DebugSettings>();
     }
 }
 
