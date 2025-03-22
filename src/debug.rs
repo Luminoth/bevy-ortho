@@ -3,8 +3,8 @@ use bevy::{
         DiagnosticsStore, EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin,
         SystemInformationDiagnosticsPlugin,
     },
-    input::common_conditions::input_toggle_active,
     prelude::*,
+    window::PrimaryWindow,
 };
 use bevy_inspector_egui::{bevy_egui::EguiContexts, egui};
 
@@ -12,11 +12,16 @@ use crate::{camera, cursor, player};
 
 #[derive(Debug, Default, Reflect, Resource)]
 pub struct DebugSettings {
+    pub show_debug_ui: bool,
     pub show_world_inspector: bool,
 }
 
+fn show_debug_ui(debug_settings: Res<DebugSettings>) -> bool {
+    debug_settings.show_debug_ui
+}
+
 fn show_world_inspector(debug_settings: Res<DebugSettings>) -> bool {
-    debug_settings.show_world_inspector
+    debug_settings.show_debug_ui && debug_settings.show_world_inspector
 }
 
 #[derive(Debug, Default)]
@@ -24,32 +29,39 @@ pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
-        // diagnostics
         app.add_plugins((
+            // diagnostics
             //bevy::diagnostic::LogDiagnosticsPlugin::default(),
             bevy::diagnostic::FrameTimeDiagnosticsPlugin,
             bevy::diagnostic::EntityCountDiagnosticsPlugin,
             //bevy::render::diagnostic::RenderDiagnosticsPlugin,
             bevy::diagnostic::SystemInformationDiagnosticsPlugin,
-        ));
-
-        // inspectors
-        app.add_plugins((
+            // inspectors
             // TODO: why does the world inspector not pick up custom resource types?
             // using register_type() on them doesn't seem to fix it
             // TODO: might have outgrown the quick plugins: https://docs.rs/bevy-inspector-egui/0.25.2/bevy_inspector_egui/#use-case-2-manual-ui
             bevy_inspector_egui::quick::WorldInspectorPlugin::default()
                 .run_if(show_world_inspector),
-        ));
-
-        app.init_resource::<DebugSettings>();
-
-        app.add_systems(
+        ))
+        .add_systems(
             Update,
-            // TODO: this needs to be reworked to also hide the inspectors when disabling
-            // (probably just copy input_toggle_active but also have it disable everything?)
-            (debug_ui, game_debug_ui).run_if(input_toggle_active(false, KeyCode::Backquote)),
-        );
+            (
+                listen_input,
+                (debug_ui, game_debug_ui).chain().run_if(show_debug_ui),
+            ),
+        )
+        .init_resource::<DebugSettings>();
+    }
+}
+
+fn listen_input(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut debug_settings: ResMut<DebugSettings>,
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    if keys.just_pressed(KeyCode::Backquote) {
+        debug_settings.show_debug_ui = !debug_settings.show_debug_ui;
+        crate::show_cursor(&mut window_query.single_mut(), debug_settings.show_debug_ui);
     }
 }
 
